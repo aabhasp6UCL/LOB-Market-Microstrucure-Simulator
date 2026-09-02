@@ -7,7 +7,6 @@ enum class EventType {
     MODIFY_ORDER = 2,
     CANCEL_ORDER = 3,
 
-
 };
 
 struct MarketEvent {

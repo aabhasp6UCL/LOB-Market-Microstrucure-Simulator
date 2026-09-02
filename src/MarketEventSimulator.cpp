@@ -1,4 +1,4 @@
-#include "SimulateMarketEvents.h"
+#include "MarketEvents.h"
 #include "../include/Order.h"
 #include <fstream>
 #include <iostream>
@@ -34,11 +34,11 @@ static void readMarketEvents()
         int quantity = std::stoi(row[3]);
         double price = std::stod(row[4]) / 10000.0;
 
-        if (eventType > static_cast<EventType>(4)) {
+        if (eventType > static_cast<EventType>(3)) {
             continue;
         }
-
         Side direction = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
         Order order(orderId, price, quantity, direction, OrderType::LIMIT);
+        MarketEvent event(eventType,timestamp,order);
     }
 }

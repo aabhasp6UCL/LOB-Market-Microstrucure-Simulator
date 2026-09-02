@@ -2,7 +2,7 @@
 #include <queue>
 #include <map>
 #include <string>
-#include "../include/SimulateMarketEvents.h"
+#include "../include/MarketEvents.h"
 #include "../include/Order.h"
 #include "../include/MatchingEngine.h"
 
@@ -12,7 +12,7 @@ class Order_book {
     
     public:
         std::map<double, std::queue<Order>, std::greater<double>> bid;
-        std::map<double, std::queue<Order>> ask;
+        std::map<double, std::queue<Order>, std::less<double>> ask;
 
         std::map<double, std::queue<Order>, std::greater<double>>& getBid(){
             return bid;
@@ -28,7 +28,12 @@ class Order_book {
         }
 
         void addOrder(Order order);
-        void cancelOrder(Order order);
+        
+        template <typename MapType>
+        void remove(MapType& type, double price, long id) {
+        Order returnOrderBasedOnId(long ids);
+        void cancelOrder(long id);
+
         void editOrder(Order order);
         void processEvent(MarketEvent event);
 };
@@ -77,43 +82,69 @@ void Order_book::addOrder(Order order){
     }
 }
 
+Order Order_book::returnOrderBasedOnId(long ids){
 
-void Order_book::cancelOrder(long id){
-
-    double price = order.price;
-    Side side = order.side;
-    long id = order.id; 
-
-    std::queue<Order> removed;
+    for (const auto& pair : bid) {
+        std::queue<Order> hold = pair.second;
+        while (!hold.empty()) {
+            Order item = hold.front();
+            if (item.id == ids) {
+                return item;}
+            hold.pop();
+        }
+    }
     
-    if (side == Side::BUY) {
-        while (!bid[price].empty()) {
-            if (bid[price].front().id != id) {
-                removed.push(bid[price].front());
-            }
-            bid[price].pop();
+    for (const auto& pair : ask) {
+        std::queue<Order> hold = pair.second;
+        while (!hold.empty()) {
+            Order item = hold.front();
+            if (item.id == ids) {
+                return item;}
+            hold.pop();
         }
-        bid[price] = removed;
-    } 
-    else {
-        while (!ask[price].empty()) {
-            if (ask[price].front().id != id) {
-                removed.push(ask[price].front());
-            }
-            ask[price].pop();
-        }
-        ask[price] = removed;
     }
 }
 
-void Order_book::editOrder(Order order){
+template <typename MapType>
+void Order_book:: remove(MapType& type, double price, long ids) {
+
+    std::queue<Order> removed;
+    while (!type[price].empty()) {
+        if (type[price].front().id != ids) {
+            removed.push(type[price].front());
+        }
+        type[price].pop();
+    }
+    type[price] = removed;
+}
+
+void Order_book::cancelOrder(long ids){
+
+    Order cancel_order = returnOrderBasedOnId(ids);
+    Side side = cancel_order.side;
+    double price = cancel_order.price;
+
+    std::map<double, std::queue<Order>, std::greater<double>> type = {};
+
+    if (side == Side ::BUY){
+        remove(bid, cancel_order.price, ids);
+    }
+    else {
+        remove(bid, cancel_order.price, ids);
+    } 
+}
+
+void Order_book::editOrder(long ids){
 }
 
 void Order_book::processEvent(MarketEvent event){
     if (event.type == EventType::NEW_ORDER){
-        addOrder(event.order);}
+        addOrder(event.order);
+    }
     else if (event.type == EventType::CANCEL_ORDER){
-        cancelOrder(event.order);}
+        cancelOrder(event.order.id);
+    }
     else{
-        editOrder(event.order);}   
+        editOrder(event.order.id);
+    }   
 }
