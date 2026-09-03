@@ -7,12 +7,7 @@ struct Trade {
     double price;
     long buy_id;
     long sell_id;
-    Side side;
     int trade_quantity;
+    double timestamp;
 
 };
-
-std:: vector<Trade> trades;
-void storeTrade(Trade trade){
-    trades.push_back(trade);
-}

@@ -1,11 +1,16 @@
 #include "../include/MatchingEngine.h"
 #include "../include/OrderBook.h"
+#include "../include/Trade.h"
+#include <vector>
 
 class MatchingEngine{
     public:
-        template <typename Compare>
-        void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type);
+
         OrderBook ob;
+        std::vector<Trade> store_trades;
+
+        template <typename Compare>
+        void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type); 
 };
 
 template <typename Compare>
@@ -19,22 +24,35 @@ void MatchingEngine :: MatchOrder(Order& order, std::map<double, std::queue<Orde
     int remaining = quant;
 
     while (remaining != 0 && !type.empty()){
-        std::queue<Order>& queue = type.begin()->second;
-        if (queue.empty() == true){
+        if (type.begin()->second.empty() == true){
             type.erase(type.begin());
-            if (!type.empty()){
-                std::queue<Order>& queue = type.begin()->second;
-                if (order.type == OrderType::LIMIT ){
-                    if (side == Side::BUY && ob.getAsk().begin()->first > price_){
-                        break;
-                    }
-                    if (side == Side::SELL && ob.getBid().begin()->first < price_ ){
-                        break;
-                    }
+            continue;
+        }
+        if (!type.empty()){
+            if (order.type == OrderType::LIMIT ){
+                if (side == Side::BUY && ob.getAsk().begin()->first > price_){
+                    Order new_order(id,OrderType::LIMIT,Side::BUY,price_,remaining);
+                    ob.addOrder(new_order);
+                    break;
+                }
+                if (side == Side::SELL && ob.getBid().begin()->first < price_ ){
+                    Order new_order(id,OrderType::LIMIT,Side::SELL,price_,remaining);
+                    ob.addOrder(new_order);
+                    break;
                 }
             }
         }
+        std::queue<Order>& queue = type.begin()->second;
         if (remaining >= queue.front().quantity){
+            if (side == Side::BUY){
+                Trade trade(queue.front().price,id,queue.front().id,queue.front().quantity);
+                store_trades.push_back(trade);    
+            }
+            else{
+                Trade trade(queue.front().price,queue.front().id,id,queue.front().quantity);
+                store_trades.push_back(trade);
+            }
+
             remaining -= queue.front().quantity;
             queue.pop();
         }

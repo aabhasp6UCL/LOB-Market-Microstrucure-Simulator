@@ -1,7 +1,7 @@
 #ifndef TRADE_H
 #define TRADE_H
 
-struct trade {
+struct Trade {
     double price;
     long buy_id;
     long sell_id;
