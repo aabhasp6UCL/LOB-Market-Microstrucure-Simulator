@@ -61,7 +61,7 @@ void Order_book::addOrder(Order order){
         }
         else if (order.side == Side::SELL){
             if (!bid.empty() && bid.begin()->first >= price_){
-                match.MatchOrder(order, reinterpret_cast<std::map<double, std::queue<Order>>&>(bid));}
+                match.MatchOrder(order, bid);}
             else{
                 if (ask.count(price_) > 0){
                     ask[price_].push(order);
@@ -130,7 +130,7 @@ void Order_book::cancelOrder(long ids){
         remove(bid, cancel_order.price, ids);
     }
     else {
-        remove(bid, cancel_order.price, ids);
+        remove(ask, cancel_order.price, ids);
     } 
 }
 

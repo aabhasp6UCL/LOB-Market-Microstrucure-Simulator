@@ -3,11 +3,13 @@
 
 class MatchingEngine{
     public:
-        void MatchOrder(Order& order, std::map<double, std::queue<Order>>& type);
+        template <typename Compare>
+        void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type);
         OrderBook ob;
 };
 
-void MatchingEngine :: MatchOrder(Order& order, std::map<double, std::queue<Order>>& type){
+template <typename Compare>
+void MatchingEngine :: MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type){
 
     double price_ = order.price;
     int quant = order.quantity;
