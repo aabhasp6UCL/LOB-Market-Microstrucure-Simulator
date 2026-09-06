@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LOB Terminal</title>
+
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ========================================= -->
+        <!-- TOP BAR                                   -->
+        <!-- ========================================= -->
+
+        <header class="topbar">
+
+            <div class="brand">
+                <div class="brand-mark">LOB</div>
+
+                <div class="brand-text">
+                    <h1>LIMIT ORDER BOOK</h1>
+                    <span>MARKET MICROSTRUCTURE SIMULATOR</span>
+                </div>
+            </div>
+
+            <div class="market-status">
+
+                <div class="status-item">
+                    <span class="label">MARKET</span>
+                    <span class="value">SIMULATED</span>
+                </div>
+
+                <div class="status-item">
+                    <span class="label">STATUS</span>
+                    <span
+                        id="connection-status"
+                        class="value status-connected"
+                    >
+                        CONNECTED
+                    </span>
+                </div>
+
+                <div class="status-item">
+                    <span class="label">EVENT</span>
+                    <span id="event-id" class="value">000000</span>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ========================================= -->
+        <!-- MAIN CONTENT                              -->
+        <!-- ========================================= -->
+
+        <main class="main-grid">
+
+
+            <!-- ===================================== -->
+            <!-- LEFT COLUMN                           -->
+            <!-- ===================================== -->
+
+            <section class="left-column">
+
+
+                <!-- ================================= -->
+                <!-- MARKET HEADER                      -->
+                <!-- ================================= -->
+
+                <div class="panel market-header">
+
+                    <div class="instrument">
+                        <span class="instrument-name">LOBSTER / TEST</span>
+                        <span class="instrument-subtitle">
+                            LIMIT ORDER BOOK
+                        </span>
+                    </div>
+
+                    <div class="market-metrics">
+
+                        <div class="metric">
+                            <span class="metric-label">
+                                BEST BID
+                            </span>
+
+                            <span
+                                id="best-bid"
+                                class="metric-value bid-text"
+                            >
+                                --
+                            </span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">
+                                BEST ASK
+                            </span>
+
+                            <span
+                                id="best-ask"
+                                class="metric-value ask-text"
+                            >
+                                --
+                            </span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">
+                                MID
+                            </span>
+
+                            <span
+                                id="mid-price"
+                                class="metric-value"
+                            >
+                                --
+                            </span>
+                        </div>
+
+                        <div class="metric">
+                            <span class="metric-label">
+                                SPREAD
+                            </span>
+
+                            <span
+                                id="spread"
+                                class="metric-value"
+                            >
+                                --
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================= -->
+                <!-- ORDER BOOK                         -->
+                <!-- ================================= -->
+
+                <div class="panel orderbook-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>ORDER BOOK</h2>
+                            <span>LEVEL II MARKET DEPTH</span>
+                        </div>
+
+                        <div class="book-info">
+
+                            <div class="book-stat">
+                                <span>IMBALANCE</span>
+                                <strong id="book-imbalance">
+                                    --
+                                </strong>
+                            </div>
+
+                            <div class="book-stat">
+                                <span>DEPTH</span>
+                                <strong id="visible-depth">
+                                    --
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Column headers -->
+
+                    <div class="orderbook-header">
+
+                        <div>ORDERS</div>
+                        <div>SIZE</div>
+                        <div>PRICE</div>
+                        <div>SIZE</div>
+                        <div>ORDERS</div>
+
+                    </div>
+
+
+                    <!-- Main book -->
+
+                    <div class="orderbook">
+
+                        <!-- ASK SIDE -->
+
+                        <div
+                            id="asks"
+                            class="book-side asks"
+                        >
+                            <!--
+                                JavaScript will insert ask
+                                price levels here
+                            -->
+                        </div>
+
+
+                        <!-- MID / SPREAD -->
+
+                        <div class="book-center">
+
+                            <div class="spread-line">
+
+                                <span>SPREAD</span>
+
+                                <strong id="book-spread">
+                                    --
+                                </strong>
+
+                            </div>
+
+                            <div class="mid-line">
+
+                                <span>MID</span>
+
+                                <strong id="book-mid">
+                                    --
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- BID SIDE -->
+
+                        <div
+                            id="bids"
+                            class="book-side bids"
+                        >
+                            <!--
+                                JavaScript will insert bid
+                                price levels here
+                            -->
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================= -->
+                <!-- TIME & SALES                       -->
+                <!-- ================================= -->
+
+                <div class="panel trades-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>TIME & SALES</h2>
+                            <span>RECENT EXECUTIONS</span>
+                        </div>
+
+                        <div class="last-trade">
+
+                            <span>LAST</span>
+
+                            <strong id="last-trade-price">
+                                --
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="trades-table">
+
+                        <div class="trades-header">
+
+                            <div>TIME</div>
+                            <div>SIDE</div>
+                            <div>PRICE</div>
+                            <div>SIZE</div>
+
+                        </div>
+
+                        <div
+                            id="trade-list"
+                            class="trade-list"
+                        >
+                            <!-- Trades inserted by JavaScript -->
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ===================================== -->
+            <!-- RIGHT COLUMN                          -->
+            <!-- ===================================== -->
+
+            <section class="right-column">
+
+
+                <!-- ================================= -->
+                <!-- PRICE CHART                        -->
+                <!-- ================================= -->
+
+                <div class="panel chart-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>MID PRICE</h2>
+                            <span>INTRASIMULATION PRICE</span>
+                        </div>
+
+                        <div class="chart-price">
+
+                            <span id="chart-current-price">
+                                --
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="chart-container">
+
+                        <canvas
+                            id="price-chart"
+                        ></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================= -->
+                <!-- ORDER FLOW                         -->
+                <!-- ================================= -->
+
+                <div class="panel flow-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>ORDER FLOW</h2>
+                            <span>AGGRESSOR VOLUME</span>
+                        </div>
+
+                        <div>
+                            <span id="flow-net">
+                                --
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="flow-container">
+
+                        <div class="flow-row">
+
+                            <span>BUY</span>
+
+                            <div class="flow-bar-container">
+
+                                <div
+                                    id="buy-flow-bar"
+                                    class="flow-bar buy-flow"
+                                ></div>
+
+                            </div>
+
+                            <strong id="buy-flow">
+                                0
+                            </strong>
+
+                        </div>
+
+
+                        <div class="flow-row">
+
+                            <span>SELL</span>
+
+                            <div class="flow-bar-container">
+
+                                <div
+                                    id="sell-flow-bar"
+                                    class="flow-bar sell-flow"
+                                ></div>
+
+                            </div>
+
+                            <strong id="sell-flow">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================= -->
+                <!-- SIMULATION CONTROLS                -->
+                <!-- ================================= -->
+
+                <div class="panel controls-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>SIMULATION</h2>
+                            <span>EVENT REPLAY</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="simulation-controls">
+
+                        <button
+                            id="previous-event"
+                            class="control-button"
+                        >
+                            ◀ PREVIOUS
+                        </button>
+
+                        <button
+                            id="next-event"
+                            class="control-button primary"
+                        >
+                            NEXT EVENT ▶
+                        </button>
+
+                        <button
+                            id="play-button"
+                            class="control-button"
+                        >
+                            ▶ PLAY
+                        </button>
+
+                        <button
+                            id="reset-button"
+                            class="control-button"
+                        >
+                            RESET
+                        </button>
+
+                    </div>
+
+
+                    <div class="speed-control">
+
+                        <div class="speed-header">
+
+                            <span>SIMULATION SPEED</span>
+
+                            <strong id="speed-value">
+                                1.0x
+                            </strong>
+
+                        </div>
+
+                        <input
+                            id="speed-slider"
+                            type="range"
+                            min="0.25"
+                            max="10"
+                            value="1"
+                            step="0.25"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================= -->
+                <!-- CURRENT EVENT                      -->
+                <!-- ================================= -->
+
+                <div class="panel event-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>EVENT</h2>
+                            <span>CURRENT MARKET EVENT</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="event-details">
+
+                        <div class="event-row">
+
+                            <span>EVENT TYPE</span>
+
+                            <strong id="event-type">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="event-row">
+
+                            <span>SIDE</span>
+
+                            <strong id="event-side">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="event-row">
+
+                            <span>PRICE</span>
+
+                            <strong id="event-price">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="event-row">
+
+                            <span>VOLUME</span>
+
+                            <strong id="event-volume">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="event-row">
+
+                            <span>TIMESTAMP</span>
+
+                            <strong id="event-timestamp">
+                                --
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================= -->
+                <!-- MARKET STATISTICS                  -->
+                <!-- ================================= -->
+
+                <div class="panel stats-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h2>BOOK STATISTICS</h2>
+                            <span>MARKET MICROSTRUCTURE</span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="stats-grid">
+
+                        <div class="stat-box">
+
+                            <span>TOP 5 BID VWAP</span>
+
+                            <strong id="bid-vwap">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="stat-box">
+
+                            <span>TOP 5 ASK VWAP</span>
+
+                            <strong id="ask-vwap">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="stat-box">
+
+                            <span>BID DEPTH</span>
+
+                            <strong id="bid-depth">
+                                --
+                            </strong>
+
+                        </div>
+
+                        <div class="stat-box">
+
+                            <span>ASK DEPTH</span>
+
+                            <strong id="ask-depth">
+                                --
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- ========================================= -->
+        <!-- FOOTER                                    -->
+        <!-- ========================================= -->
+
+        <footer class="footer">
+
+            <div>
+                LOB TERMINAL
+            </div>
+
+            <div>
+                EVENT-DRIVEN MARKET SIMULATOR
+            </div>
+
+            <div id="footer-time">
+                --
+            </div>
+
+        </footer>
+
+    </div>
+
+
+    <!-- ============================================= -->
+    <!-- JAVASCRIPT                                   -->
+    <!-- ============================================= -->
+
+    <script src="app.js"></script>
+
+</body>
+</html>

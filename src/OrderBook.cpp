@@ -2,6 +2,7 @@
 #include <queue>
 #include <map>
 #include <string>
+#include "../include/snapshot.h"
 #include "../include/MarketEvents.h"
 #include "../include/Order.h"
 #include "../include/MatchingEngine.h"
