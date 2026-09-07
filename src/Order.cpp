@@ -5,6 +5,7 @@ enum Side {
     BUY,
     SELL
 };
+
 enum OrderType {
     MARKET,
     LIMIT

@@ -13,7 +13,7 @@ private:
     std::map<double, std::queue<Order>, std::greater<double>> bid;
     std::map<double, std::queue<Order>> ask;
 
-    std::vector<trade> trades;
+    std::vector<Trade> trades;
 
 public:
     OrderBook() = default;
@@ -26,6 +26,8 @@ public:
     void addOrder(Order order);
     void cancelOrder(Order order);
     void editOrder(Order order);
+    void processEvent(MarketEvent event);
+
 };
 
 #endif
