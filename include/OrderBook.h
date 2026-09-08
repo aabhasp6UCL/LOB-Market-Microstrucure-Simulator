@@ -27,6 +27,10 @@ public:
     void addOrder(Order order);
     void cancelOrder(Order order);
     void processEvent(MarketEvent event);
+    Order returnOrderBasedOnId(long ids);
+    template <typename MapType>
+    void remove(MapType& type,double price,long ids);
+    void cancelOrder(long ids);
 
 };
 

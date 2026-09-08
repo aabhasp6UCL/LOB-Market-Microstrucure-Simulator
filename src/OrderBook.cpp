@@ -2,73 +2,63 @@
 #include <queue>
 #include <map>
 #include <string>
+#include <stdexcept>
+
+#include "../include/OrderBook.h"
 #include "../include/snapshot.h"
 #include "../include/MarketEvents.h"
 #include "../include/Order.h"
 #include "../include/MatchingEngine.h"
 
-class OrderBook {
-private:
-    MatchingEngine match;
 
-public:
-    std::map<double, std::queue<Order>, std::greater<double>> bid;
-    std::map<double, std::queue<Order>, std::less<double>> ask;
-
-    std::map<double, std::queue<Order>, std::greater<double>>& getBid();
-    std::map<double, std::queue<Order>>& getAsk();
-
-    OrderBook(std::map<double, std::queue<Order>, std::greater<double>> bid, std::map<double, std::queue<Order>> ask){
-        this->bid = bid;
-        this->ask = ask;
-    }
-
-    void addOrder(Order order);
-
-    template <typename MapType>
-    void remove(MapType& type, double price, long id);
-
-    Order returnOrderBasedOnId(long ids);
-    void cancelOrder(long id);
-    void processEvent(MarketEvent event);
-};
-
-std::map<double, std::queue<Order>, std::greater<double>>&OrderBook :: getBid() {
+std::map<double, std::queue<Order>, std::greater<double>>& OrderBook::getBid() {
     return bid;
 }
-std::map<double, std::queue<Order>>&OrderBook :: getAsk() {
+
+MatchingEngine match;
+
+std::map<double, std::queue<Order>>&OrderBook::getAsk() {
     return ask;
 }
 
-void OrderBook::addOrder(Order order){
-    double price_ = order.price;
-    int quant = order.quantity;
+OrderBook::OrderBook(
+    std::map<double, std::queue<Order>, std::greater<double>> bid,
+    std::map<double, std::queue<Order>> ask
+) {
+    this->bid = bid;
+    this->ask = ask;
+}
 
-    if(order.type == OrderType::LIMIT){
-        if(order.side == Side::BUY){
-            if(!ask.empty() && ask.begin()->first <= price_){
-                match.MatchOrder(order,ask,bid);
+
+void OrderBook::addOrder(Order order) {
+
+    double price_ = order.price;
+
+    if (order.type == OrderType::LIMIT) {
+        if (order.side == Side::BUY) {
+            if (!ask.empty() && ask.begin()->first <= price_) {
+                match.MatchOrder(order, ask, bid);
             }
-            else{
-                if(bid.count(price_) > 0){
+            else {
+                if (bid.count(price_) > 0) {
                     bid[price_].push(order);
                 }
-                else{
+                else {
                     std::queue<Order> new_queue;
                     new_queue.push(order);
                     bid[price_] = new_queue;
                 }
             }
         }
-        else if(order.side == Side::SELL){
-            if(!bid.empty() && bid.begin()->first >= price_){
-                match.MatchOrder(order,bid,ask);
+        else if (order.side == Side::SELL) {
+            if (!bid.empty() && bid.begin()->first >= price_) {
+                match.MatchOrder(order, bid, ask);
             }
-            else{
-                if(ask.count(price_) > 0){
+            else {
+                if (ask.count(price_) > 0) {
                     ask[price_].push(order);
                 }
-                else{
+                else {
                     std::queue<Order> new_queue;
                     new_queue.push(order);
                     ask[price_] = new_queue;
@@ -76,75 +66,76 @@ void OrderBook::addOrder(Order order){
             }
         }
     }
-    else if(order.type == OrderType::MARKET){
-        if(order.side == Side::BUY){
-            match.MatchOrder(order,ask,bid);
+    else if (order.type == OrderType::MARKET) {
+        if (order.side == Side::BUY) {
+            match.MatchOrder(order, ask, bid);
         }
-        else{
-            match.MatchOrder(order,bid,ask);
+        else {
+            match.MatchOrder(order, bid, ask);
         }
     }
 }
 
-Order OrderBook::returnOrderBasedOnId(long ids){
-    for(const auto& pair : bid){
+
+Order OrderBook::returnOrderBasedOnId(long ids) {
+
+    for (const auto& pair : bid) {
         std::queue<Order> hold = pair.second;
-        while(!hold.empty()){
+        while (!hold.empty()) {
             Order item = hold.front();
-            if(item.id == ids){
+            if (item.id == ids) {
                 return item;
             }
             hold.pop();
         }
     }
 
-    for(const auto& pair : ask){
+    for (const auto& pair : ask) {
         std::queue<Order> hold = pair.second;
-        while(!hold.empty()){
+        while (!hold.empty()) {
             Order item = hold.front();
-            if(item.id == ids){
+            if (item.id == ids) {
                 return item;
             }
             hold.pop();
         }
     }
+
     throw std::runtime_error("Order ID not found");
 }
 
-template <typename MapType>
-void OrderBook::remove(MapType& type, double price, long ids){
-    std::queue<Order> removed;
 
-    while(!type[price].empty()){
-        if(type[price].front().id != ids){
+template <typename MapType>
+void OrderBook::remove(MapType& type,double price,long ids) {
+    std::queue<Order> removed;
+    while (!type[price].empty()) {
+        if (type[price].front().id != ids) {
             removed.push(type[price].front());
         }
         type[price].pop();
     }
-
     type[price] = removed;
 }
 
-void OrderBook::cancelOrder(long ids){
+
+void OrderBook::cancelOrder(long ids) {
+
     Order cancel_order = returnOrderBasedOnId(ids);
     Side side = cancel_order.side;
-    double price = cancel_order.price;
-    std::map<double, std::queue<Order>, std::greater<double>> type = {};
-
-    if(side == Side::BUY){
+    if (side == Side::BUY) {
         remove(bid, cancel_order.price, ids);
     }
-    else{
+    else {
         remove(ask, cancel_order.price, ids);
     }
 }
 
+void OrderBook::processEvent(MarketEvent event) {
 
-void OrderBook::processEvent(MarketEvent event){
-    if(event.type == EventType::NEW_ORDER){
+    if (event.type == EventType::NEW_ORDER) {
         addOrder(event.order);
     }
-    else if(event.type == EventType::CANCEL_ORDER){
+    else if (event.type == EventType::CANCEL_ORDER) {
         cancelOrder(event.order.id);
     }
 }
