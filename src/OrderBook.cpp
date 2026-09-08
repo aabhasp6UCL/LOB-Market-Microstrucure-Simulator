@@ -7,7 +7,7 @@
 #include "../include/Order.h"
 #include "../include/MatchingEngine.h"
 
-class Order_book {
+class OrderBook {
 private:
     MatchingEngine match;
 
@@ -15,15 +15,10 @@ public:
     std::map<double, std::queue<Order>, std::greater<double>> bid;
     std::map<double, std::queue<Order>, std::less<double>> ask;
 
-    std::map<double, std::queue<Order>, std::greater<double>>& getBid(){
-        return bid;
-    }
+    std::map<double, std::queue<Order>, std::greater<double>>& getBid();
+    std::map<double, std::queue<Order>>& getAsk();
 
-    std::map<double, std::queue<Order>>& getAsk(){
-        return ask;
-    }
-
-    Order_book(std::map<double, std::queue<Order>, std::greater<double>> bid, std::map<double, std::queue<Order>> ask){
+    OrderBook(std::map<double, std::queue<Order>, std::greater<double>> bid, std::map<double, std::queue<Order>> ask){
         this->bid = bid;
         this->ask = ask;
     }
@@ -38,7 +33,14 @@ public:
     void processEvent(MarketEvent event);
 };
 
-void Order_book::addOrder(Order order){
+std::map<double, std::queue<Order>, std::greater<double>>&OrderBook :: getBid() {
+    return bid;
+}
+std::map<double, std::queue<Order>>&OrderBook :: getAsk() {
+    return ask;
+}
+
+void OrderBook::addOrder(Order order){
     double price_ = order.price;
     int quant = order.quantity;
 
@@ -84,7 +86,7 @@ void Order_book::addOrder(Order order){
     }
 }
 
-Order Order_book::returnOrderBasedOnId(long ids){
+Order OrderBook::returnOrderBasedOnId(long ids){
     for(const auto& pair : bid){
         std::queue<Order> hold = pair.second;
         while(!hold.empty()){
@@ -106,10 +108,11 @@ Order Order_book::returnOrderBasedOnId(long ids){
             hold.pop();
         }
     }
+    throw std::runtime_error("Order ID not found");
 }
 
 template <typename MapType>
-void Order_book::remove(MapType& type, double price, long ids){
+void OrderBook::remove(MapType& type, double price, long ids){
     std::queue<Order> removed;
 
     while(!type[price].empty()){
@@ -122,7 +125,7 @@ void Order_book::remove(MapType& type, double price, long ids){
     type[price] = removed;
 }
 
-void Order_book::cancelOrder(long ids){
+void OrderBook::cancelOrder(long ids){
     Order cancel_order = returnOrderBasedOnId(ids);
     Side side = cancel_order.side;
     double price = cancel_order.price;
@@ -137,7 +140,7 @@ void Order_book::cancelOrder(long ids){
 }
 
 
-void Order_book::processEvent(MarketEvent event){
+void OrderBook::processEvent(MarketEvent event){
     if(event.type == EventType::NEW_ORDER){
         addOrder(event.order);
     }

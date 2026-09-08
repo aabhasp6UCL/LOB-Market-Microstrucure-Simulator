@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-OrderBook ob;
+extern OrderBook ob;
 static std::vector<std::string> split(const std::string& line, char delimiter){
     
     std::vector<std::string> fields;
@@ -127,7 +127,7 @@ void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& b
         bid_it++;
         ask_it++;
     }
-    std::ofstream file("webSimulator/OrderBook.json");    
+    std::ofstream file("webSimulator/OrderBook.json");
     file << OrderBook.dump(4);
     file.close();
 }
