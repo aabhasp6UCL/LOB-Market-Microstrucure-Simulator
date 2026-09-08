@@ -1,164 +1,776 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LOB Terminal</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>LOB Terminal</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
 <div class="app-shell">
-  <header class="topbar">
-    <div class="brand-block">
-      <div class="brand-mark">LOB</div>
-      <div>
-        <div class="brand-title">LIMIT ORDER BOOK</div>
-        <div class="brand-subtitle">MARKET MICROSTRUCTURE SIMULATOR</div>
-      </div>
-    </div>
-    <div class="market-selector">
-      <span class="market-symbol">LOBSTER - AAPL_2012-06-21</span>
-      <span class="market-status"><span class="status-dot"></span>SIMULATED</span>
-    </div>
-    <div class="top-actions">
-      <span class="event-indicator">EVENT <strong id="eventId">000001</strong></span>
-    </div>
-  </header>
 
-  <main class="main-grid">
-    <section class="hero-metrics">
-      <div class="metric-card"><span class="metric-label">BEST BID</span><strong id="bestBid" class="bid-text">--</strong></div>
-      <div class="metric-card"><span class="metric-label">BEST ASK</span><strong id="bestAsk" class="ask-text">--</strong></div>
-      <div class="metric-card featured"><span class="metric-label">MID PRICE</span><strong id="midPrice">--</strong></div>
-      <div class="metric-card"><span class="metric-label">SPREAD</span><strong id="spread">--</strong></div>
-      <div class="metric-card"><span class="metric-label">LAST TRADE</span><strong id="lastTrade">--</strong></div>
-      <div class="metric-card"><span class="metric-label">BOOK IMBALANCE</span><strong id="imbalance">--</strong></div>
-    </section>
+    <!-- =========================
+         TOP BAR
+    ========================== -->
 
-    <section class="book-panel panel">
-      <div class="panel-header">
-        <div>
-          <h2>ORDER BOOK</h2>
-          <span class="panel-caption">LEVEL II MARKET DEPTH</span>
-        </div>
-        <div class="book-header-actions">
-          <div class="book-stats">
-            <span>VISIBLE DEPTH <strong id="visibleDepth">--</strong></span>
-            <span>TOP 5 VWAP <strong id="vwap">--</strong></span>
-          </div>
-          <button id="addOrderBtn" class="add-order-button" type="button">+ ADD ORDER</button>
-        </div>
-        <div id="orderForm" class="order-form hidden">
-          <div class="order-form-header">
+    <header class="topbar">
+
+        <div class="brand-block">
+
+            <div class="brand-mark">
+                LOB
+            </div>
+
             <div>
-              <h3>ADD LIMIT ORDER</h3>
-              <span>PLACE A USER ORDER INTO THE BOOK</span>
-            </div>
-            <button id="closeOrderForm" class="close-order-button" type="button">×</button>
-          </div>
+                <div class="brand-title">
+                    LIMIT ORDER BOOK
+                </div>
 
-          <div class="order-form-controls">
-            <div class="order-side-toggle">
-              <button id="buyOrderBtn" class="order-side-button buy active" type="button">BUY</button>
-              <button id="sellOrderBtn" class="order-side-button sell" type="button">SELL</button>
+                <div class="brand-subtitle">
+                    MARKET MICROSTRUCTURE SIMULATOR
+                </div>
             </div>
 
-            <label class="order-field">
-              <span>PRICE</span>
-              <input id="orderPrice" type="number" min="0.01" step="0.01" placeholder="100.02">
-            </label>
-
-            <label class="order-field">
-              <span>SIZE</span>
-              <input id="orderSize" type="number" min="1" step="1" placeholder="100">
-            </label>
-
-            <button id="submitOrderBtn" class="submit-order-button buy" type="button">PLACE BUY ORDER</button>
-          </div>
-
-          <div id="orderFormMessage" class="order-form-message"></div>
         </div>
-      </div>
 
-      <div class="book-header-row">
-        <div class="depth-header">BID&nbsp;&nbsp;&nbsp;&nbsp;SIZE</div>
-        <div>PRICE</div>
-        <div class="ask-header">SIZE&nbsp;&nbsp;&nbsp;&nbsp;ASK</div>
-      </div>
 
-      <div class="book-wrap">
-        <div id="bidBook" class="book-side bid-side"></div>
-        <div id="priceBook" class="price-column"></div>
-        <div id="askBook" class="book-side ask-side"></div>
-      </div>
+        <div class="market-selector">
 
-      <div class="book-footer">
-        <div><span>BID DEPTH</span><strong id="bidDepth">--</strong></div>
-        <div class="mid-footer"><span>MID</span><strong id="bookMid">--</strong></div>
-        <div><span>ASK DEPTH</span><strong id="askDepth">--</strong></div>
-      </div>
-    </section>
+            <span class="market-symbol">
+                LOBSTER - AAPL_2012-06-21
+            </span>
 
-    <aside class="side-column">
-      <section class="chart-panel panel">
-        <div class="panel-header">
-          <div>
-            <h2>MID PRICE</h2>
-            <span class="panel-caption">INTRASIMULATION PRICE</span>
-          </div>
-          <strong id="chartChange" class="chart-change">--</strong>
-        </div>
-        <div class="chart-area">
-          <canvas id="priceChart"></canvas>
-          <div id="yLabels" class="chart-y-labels"></div>
-        </div>
-        <div class="chart-footer">
-          <span id="chartLow">LOW --</span>
-          <span id="chartHigh">HIGH --</span>
-        </div>
-      </section>
+            <span class="market-status">
+                <span class="status-dot"></span>
+                SIMULATED
+            </span>
 
-      <section class="controls-panel panel">
-        <div class="panel-header">
-          <div>
-            <h2>SIMULATION</h2>
-            <span class="panel-caption">EVENT REPLAY</span>
-          </div>
-          <span id="simTime" class="sim-time">--:--:--.---</span>
         </div>
-        <div class="control-row">
-          <button id="previousEvent" class="control-btn">◀ PREVIOUS</button>
-          <button id="nextEvent" class="control-btn primary">NEXT EVENT ▶</button>
-          <button id="playButton" class="control-btn">▶ PLAY</button>
-          <button id="resetButton" class="control-btn">RESET</button>
-        </div>
-        <div class="speed-row">
-          <span>SIMULATION SPEED</span>
-          <input id="speedSlider" type="range" min="0.25" max="10" step="0.25" value="5">
-          <strong id="speedValue">5.0x</strong>
-        </div>
-      </section>
-    </aside>
 
-    <section class="tape-panel panel">
-      <div class="panel-header">
-        <div>
-          <h2>TIME &amp; SALES</h2>
-          <span class="panel-caption">RECENT EXECUTIONS</span>
-        </div>
-        <div class="last-trade"><span>LAST</span><strong id="lastTradeSize">--</strong></div>
-      </div>
-      <div class="tape-head"><span>TIME</span><span>PRICE</span><span>SIZE</span><span>SIDE</span></div>
-      <div id="tapeBody" class="tape-body"></div>
-    </section>
-  </main>
 
-  <footer class="footer">
-    <span>LOB TERMINAL</span>
-    <span>EVENT-DRIVEN MARKET SIMULATOR</span>
-    <span id="footerTime">--</span>
-  </footer>
+        <div class="top-actions">
+
+            <span class="event-indicator">
+                EVENT
+                <strong id="eventId">000001</strong>
+            </span>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main-grid">
+
+
+        <!-- =========================
+             MARKET METRICS
+        ========================== -->
+
+        <section class="hero-metrics">
+
+            <div class="metric-card">
+
+                <span class="metric-label">
+                    BEST BID
+                </span>
+
+                <strong id="bestBid" class="bid-text">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <span class="metric-label">
+                    BEST ASK
+                </span>
+
+                <strong id="bestAsk" class="ask-text">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="metric-card featured">
+
+                <span class="metric-label">
+                    MID PRICE
+                </span>
+
+                <strong id="midPrice">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <span class="metric-label">
+                    MICROPRICE
+                </span>
+
+                <strong id="microPrice">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <span class="metric-label">
+                    SPREAD
+                </span>
+
+                <strong id="spread">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <span class="metric-label">
+                    LAST TRADE
+                </span>
+
+                <strong id="lastTrade">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="metric-card imbalance-card">
+
+                <span class="metric-label">
+                    BOOK IMBALANCE
+                </span>
+
+                <strong id="imbalance">
+                    --
+                </strong>
+
+                <div class="imbalance-bar">
+
+                    <div
+                        id="imbalanceBidBar"
+                        class="imbalance-bid-bar">
+                    </div>
+
+                    <div
+                        id="imbalanceAskBar"
+                        class="imbalance-ask-bar">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             ORDER BOOK
+        ========================== -->
+
+        <section class="book-panel panel">
+
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        ORDER BOOK
+                    </h2>
+
+                    <span class="panel-caption">
+                        LEVEL II MARKET DEPTH
+                    </span>
+
+                </div>
+
+
+                <div class="book-header-actions">
+
+                    <div class="book-event-display">
+
+                        <span>
+                            EVENT
+                        </span>
+
+                        <strong id="bookEventId">
+                            000001
+                        </strong>
+
+                    </div>
+
+
+                    <div class="book-stats">
+
+                        <span>
+                            VISIBLE DEPTH
+                            <strong id="visibleDepth">
+                                --
+                            </strong>
+                        </span>
+
+                        <span>
+                            TOP 5 VWAP
+                            <strong id="vwap">
+                                --
+                            </strong>
+                        </span>
+
+                    </div>
+
+
+                    <button
+                        id="addOrderBtn"
+                        class="add-order-button"
+                        type="button">
+
+                        + ADD ORDER
+
+                    </button>
+
+                </div>
+
+
+
+                <!-- =========================
+                     ORDER FORM
+                ========================== -->
+
+                <div
+                    id="orderForm"
+                    class="order-form hidden">
+
+                    <div class="order-form-header">
+
+                        <div>
+
+                            <h3>
+                                ADD LIMIT ORDER
+                            </h3>
+
+                            <span>
+                                PLACE A USER ORDER INTO THE BOOK
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            id="closeOrderForm"
+                            class="close-order-button"
+                            type="button">
+
+                            ×
+
+                        </button>
+
+                    </div>
+
+
+
+                    <div class="order-form-controls">
+
+                        <div class="order-side-toggle">
+
+                            <button
+                                id="buyOrderBtn"
+                                class="order-side-button buy active"
+                                type="button">
+
+                                BUY
+
+                            </button>
+
+
+                            <button
+                                id="sellOrderBtn"
+                                class="order-side-button sell"
+                                type="button">
+
+                                SELL
+
+                            </button>
+
+                        </div>
+
+
+                        <label class="order-field">
+
+                            <span>
+                                PRICE
+                            </span>
+
+                            <input
+                                id="orderPrice"
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="100.02">
+
+                        </label>
+
+
+                        <label class="order-field">
+
+                            <span>
+                                SIZE
+                            </span>
+
+                            <input
+                                id="orderSize"
+                                type="number"
+                                min="1"
+                                step="1"
+                                placeholder="100">
+
+                        </label>
+
+
+                        <button
+                            id="submitOrderBtn"
+                            class="submit-order-button buy"
+                            type="button">
+
+                            PLACE BUY ORDER
+
+                        </button>
+
+                    </div>
+
+
+                    <div
+                        id="orderFormMessage"
+                        class="order-form-message">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 ORDER BOOK HEADERS
+            ========================== -->
+
+            <div class="book-header-row">
+
+                <div class="bid-head">
+                    <span>BID SIZE</span>
+                    <small>VOLUME</small>
+                </div>
+
+
+                <div class="bid-price-head">
+                    <span>BID PRICE</span>
+                    <small>PRICE</small>
+                </div>
+
+
+                <div class="market-head">
+                    <span>MARKET</span>
+                    <small>MID / SPREAD</small>
+                </div>
+
+
+                <div class="ask-price-head">
+                    <span>ASK PRICE</span>
+                    <small>PRICE</small>
+                </div>
+
+
+                <div class="ask-head">
+                    <span>ASK SIZE</span>
+                    <small>VOLUME</small>
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 ORDER BOOK BODY
+            ========================== -->
+
+            <div class="book-wrap">
+
+                <div
+                    id="bidBook"
+                    class="book-side bid-side">
+                </div>
+
+
+                <div
+                    id="bidPriceBook"
+                    class="price-column bid-price-column">
+                </div>
+
+
+                <div
+                    id="marketColumn"
+                    class="market-column">
+                </div>
+
+
+                <div
+                    id="askPriceBook"
+                    class="price-column ask-price-column">
+                </div>
+
+
+                <div
+                    id="askBook"
+                    class="book-side ask-side">
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 ORDER BOOK FOOTER
+            ========================== -->
+
+            <div class="book-footer">
+
+                <div>
+
+                    <span>
+                        BID DEPTH
+                    </span>
+
+                    <strong id="bidDepth">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="mid-footer">
+
+                    <span>
+                        MICROPRICE
+                    </span>
+
+                    <strong id="bookMicroPrice">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div class="mid-footer">
+
+                    <span>
+                        MID
+                    </span>
+
+                    <strong id="bookMid">
+                        --
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        ASK DEPTH
+                    </span>
+
+                    <strong id="askDepth">
+                        --
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             RIGHT SIDE
+        ========================== -->
+
+        <aside class="side-column">
+
+
+            <!-- =========================
+                 PRICE CHART
+            ========================== -->
+
+            <section class="chart-panel panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            MID PRICE
+                        </h2>
+
+                        <span class="panel-caption">
+                            INTRASIMULATION PRICE
+                        </span>
+
+                    </div>
+
+
+                    <strong
+                        id="chartChange"
+                        class="chart-change">
+
+                        --
+
+                    </strong>
+
+                </div>
+
+
+                <div class="chart-area">
+
+                    <canvas id="priceChart"></canvas>
+
+                    <div
+                        id="yLabels"
+                        class="chart-y-labels">
+                    </div>
+
+                </div>
+
+
+                <div class="chart-footer">
+
+                    <span id="chartLow">
+                        LOW --
+                    </span>
+
+                    <span id="chartHigh">
+                        HIGH --
+                    </span>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- =========================
+                 SIMULATION CONTROLS
+            ========================== -->
+
+            <section class="controls-panel panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <h2>
+                            SIMULATION
+                        </h2>
+
+                        <span class="panel-caption">
+                            EVENT REPLAY
+                        </span>
+
+                    </div>
+
+
+                    <span
+                        id="simTime"
+                        class="sim-time">
+
+                        --:--:--.---
+
+                    </span>
+
+                </div>
+
+
+                <div class="control-row">
+
+                    <button
+                        id="previousEvent"
+                        class="control-btn">
+
+                        ◀ PREVIOUS
+
+                    </button>
+
+
+                    <button
+                        id="nextEvent"
+                        class="control-btn primary">
+
+                        NEXT EVENT ▶
+
+                    </button>
+
+
+                    <button
+                        id="playButton"
+                        class="control-btn">
+
+                        ▶ PLAY
+
+                    </button>
+
+
+                    <button
+                        id="resetButton"
+                        class="control-btn">
+
+                        RESET
+
+                    </button>
+
+                </div>
+
+
+                <div class="speed-row">
+
+                    <span>
+                        SIMULATION SPEED
+                    </span>
+
+                    <input
+                        id="speedSlider"
+                        type="range"
+                        min="0.25"
+                        max="10"
+                        step="0.25"
+                        value="5">
+
+                    <strong id="speedValue">
+                        5.0x
+                    </strong>
+
+                </div>
+
+            </section>
+
+        </aside>
+
+
+
+        <!-- =========================
+             TIME & SALES
+        ========================== -->
+
+        <section class="tape-panel panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        TIME &amp; SALES
+                    </h2>
+
+                    <span class="panel-caption">
+                        RECENT EXECUTIONS
+                    </span>
+
+                </div>
+
+
+                <div class="last-trade">
+
+                    <span>
+                        LAST
+                    </span>
+
+                    <strong id="lastTradeSize">
+                        --
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="tape-head">
+
+                <span>
+                    TIME
+                </span>
+
+                <span>
+                    PRICE
+                </span>
+
+                <span>
+                    SIZE
+                </span>
+
+                <span>
+                    SIDE
+                </span>
+
+            </div>
+
+
+            <div
+                id="tapeBody"
+                class="tape-body">
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <span>
+            LOB TERMINAL
+        </span>
+
+        <span>
+            EVENT-DRIVEN MARKET SIMULATOR
+        </span>
+
+        <span id="footerTime">
+            --
+        </span>
+
+    </footer>
+
 </div>
+
+
 <script src="app.js"></script>
+
 </body>
+
 </html>

@@ -7,9 +7,10 @@
 #include <vector>
 #include "Order.h"
 #include "Trade.h"
+#include "MarketEvents.h"
 
 class OrderBook {
-private:
+public:
     std::map<double, std::queue<Order>, std::greater<double>> bid;
     std::map<double, std::queue<Order>> ask;
 

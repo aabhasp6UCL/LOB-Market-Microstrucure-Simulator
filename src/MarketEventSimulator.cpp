@@ -11,9 +11,9 @@
 
 using json = nlohmann::json;
 
+OrderBook ob;
 static std::vector<std::string> split(const std::string& line, char delimiter){
     
-    OrderBook ob;
     std::vector<std::string> fields;
     std::stringstream stream(line);
     std::string field;
@@ -32,7 +32,7 @@ json parseOrder(Order order) {
     j["quantity"] = order.quantity;
 
     j["side"] =
-        (order.direction == Side::BUY)
+        (order.side == Side::BUY)
         ? "BUY"
         : "SELL";
 
@@ -61,11 +61,12 @@ json parseEvent(MarketEvent event){
     return j; 
 }
 
-json bidSize(std::map<double, std::queue<Order>, std::greater<double>> bid_price){
+json bidSize(std::map<double, std::queue<Order>, std::greater<double>>bid, double bid_price){
     json j;
-    bidVolume = 0;
-    orders = 0;
-    std:: queue<Order> level = bid.begin()->second;
+    int bidVolume = 0;
+    int orders = 0;
+    auto iter = bid.find(bid_price);
+    std::queue<Order> level = iter->second;
     while (!level.empty()) {
         bidVolume += level.front().quantity;
         level.pop();
@@ -76,11 +77,12 @@ json bidSize(std::map<double, std::queue<Order>, std::greater<double>> bid_price
     return j;
 }
 
-json askSize(std::map<double, std::queue<Order>, std::greater<double>> ask, double ask_price){
+json askSize(std::map<double, std::queue<Order>, std::less<double>> ask, double ask_price){
     json j;
-    askVolume = 0;
-    orders = 0;
-    std:: queue<Order> level = ask[price];
+    int askVolume = 0;
+    int orders = 0;
+    auto iter = ask.find(ask_price);
+    std::queue<Order> level = iter->second;
     while (!level.empty()) {
         askVolume += level.front().quantity;
         level.pop();
@@ -95,12 +97,10 @@ json parseRow(std::map<double, std::queue<Order>, std::greater<double>>& bid,
         std::map<double, std::queue<Order>, std::less<double>>& ask, double bid_price, double ask_price){
             
             json j;
-            j["BID"] = "BID";
             j["bid"] = bidSize(bid,bid_price);
             j["bid_price"] = bid_price;
             j["ask_price"] = ask_price;
             j["ask"] = askSize(ask,ask_price);
-            j["ASK"] = "ASK";
             return j;
 } 
 
@@ -111,16 +111,13 @@ void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& b
     auto bid_it = bid.begin();
     auto ask_it = ask.begin();
 
-    while (bid_it != bid.end() || ask_it != ask.end()){
+
+    while (bid_it != bid.end() && ask_it != ask.end()){
         
         json row = parseRow(bid,ask,bid_it->first,ask_it->first);
         OrderBook.push_back(row);
         bid_it++;
         ask_it++;
-        if (ask_it != ask.end() || bid_it != bid.end()){
-            break;
-        } 
-
     }
     std::ofstream file("OrderBook.json");
     file << OrderBook.dump(4);
@@ -131,6 +128,7 @@ static void readMarketEvents() {
     std::ifstream file("AAPL_2012-06-21_34200000_57600000_message_1.csv");
     std::string line;
 
+    int i = 0;
     while (std::getline(file, line)) {
 
         std::vector<std::string> row = split(line, ',');
@@ -143,13 +141,19 @@ static void readMarketEvents() {
         if (eventType > static_cast<EventType>(3)) {
             continue;
         }
+
         Side direction = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
         Order order(orderId, price, quantity, direction, OrderType::LIMIT);
         parseOrder(order);
         MarketEvent event(eventType,timestamp,order);
         parseEvent(event);
         ob.processEvent(event);
+        
+        i++;
 
-
+        if (i == 1000){
+            break;
+        }
     }
+    parseOrderBook(ob.getBid(),ob.getAsk());
 }
