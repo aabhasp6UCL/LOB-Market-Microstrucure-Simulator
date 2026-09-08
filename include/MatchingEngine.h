@@ -5,13 +5,17 @@
 #include <queue>
 #include "Order.h"
 
-class OrderBook;   // forward declaration
+class OrderBook;
 
 class MatchingEngine {
+
 public:
+
     MatchingEngine() = default;
 
-    void MatchOrder(Order& order, std::map<double, std::queue<Order>>& type);
+    template <typename Compare,typename Compare1>
+    void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type,
+std::map<double, std::queue<Order>, Compare1>& opp_type);
 };
 
 #endif

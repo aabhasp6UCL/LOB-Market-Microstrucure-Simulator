@@ -1,7 +1,6 @@
 #include "MarketEvents.h"
 #include "../include/Order.h"
 #include "../include/OrderBook.h"
-#include <fstream>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -52,21 +51,24 @@ json parseEvent(MarketEvent event){
     if (event.type == EventType::NEW_ORDER) {
         j["type"] = "NEW_ORDER";
     }
-    else if (event.type == EventType::MODIFY_ORDER) {
-        j["type"] = "MODIFY_ORDER";
-    }
     else if (event.type == EventType::CANCEL_ORDER) {
         j["type"] = "CANCEL_ORDER";
     }
     return j; 
 }
 
-json bidSize(std::map<double, std::queue<Order>, std::greater<double>>bid, double bid_price){
+json bidSize(std::map<double, std::queue<Order>, std::greater<double>>&bid, double bid_price){
     json j;
     int bidVolume = 0;
     int orders = 0;
     auto iter = bid.find(bid_price);
     std::queue<Order> level = iter->second;
+    if (iter == bid.end())
+{
+    j["size"] = 0;
+    j["orders"] = 0;
+    return j;
+}
     while (!level.empty()) {
         bidVolume += level.front().quantity;
         level.pop();
@@ -77,12 +79,18 @@ json bidSize(std::map<double, std::queue<Order>, std::greater<double>>bid, doubl
     return j;
 }
 
-json askSize(std::map<double, std::queue<Order>, std::less<double>> ask, double ask_price){
+json askSize(std::map<double, std::queue<Order>, std::less<double>>& ask, double ask_price){
     json j;
     int askVolume = 0;
     int orders = 0;
     auto iter = ask.find(ask_price);
     std::queue<Order> level = iter->second;
+    if (iter == ask.end())
+{
+    j["size"] = 0;
+    j["orders"] = 0;
+    return j;
+}
     while (!level.empty()) {
         askVolume += level.front().quantity;
         level.pop();
@@ -119,7 +127,7 @@ void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& b
         bid_it++;
         ask_it++;
     }
-    std::ofstream file("OrderBook.json");
+    std::ofstream file("webSimulator/OrderBook.json");    
     file << OrderBook.dump(4);
     file.close();
 }
@@ -138,7 +146,7 @@ static void readMarketEvents() {
         int quantity = std::stoi(row[3]);
         double price = std::stod(row[4]) / 10000.0;
 
-        if (eventType > static_cast<EventType>(3)) {
+        if (eventType != static_cast<EventType>(3) || eventType != static_cast<EventType>(1) ) {
             continue;
         }
 
@@ -156,4 +164,11 @@ static void readMarketEvents() {
         }
     }
     parseOrderBook(ob.getBid(),ob.getAsk());
+}
+
+int main()
+{
+    readMarketEvents();
+
+    return 0;
 }

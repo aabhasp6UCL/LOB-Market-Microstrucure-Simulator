@@ -3,19 +3,12 @@
 #include "../include/Trade.h"
 #include <vector>
 
-class MatchingEngine{
-    public:
+template <typename Compare,typename Compare1>
+void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type,
+std::map<double, std::queue<Order>, Compare1>& opp_type){
 
-        OrderBook ob;
-        std::vector<Trade> store_trades;
-
-        template <typename Compare>
-        void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type); 
-};
-
-template <typename Compare>
-void MatchingEngine :: MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type){
-
+    std::vector<Trade> store_trades;
+    
     double price_ = order.price;
     int quant = order.quantity;
     Side side = order.side;
@@ -30,14 +23,14 @@ void MatchingEngine :: MatchOrder(Order& order, std::map<double, std::queue<Orde
         }
         if (!type.empty()){
             if (order.type == OrderType::LIMIT ){
-                if (side == Side::BUY && ob.getAsk().begin()->first > price_){
-                    new_order = Order(id,OrderType::LIMIT,Side::BUY,price_,remaining);
-                    ob.addOrder(new_order);
+                if (side == Side::BUY && opp_type.begin()->first > price_){
+                    // new_order = Order(id,OrderType::LIMIT,Side::BUY,price_,remaining);
+                    // ob.addOrder(new_order);
                     break;
                 }
-                if (side == Side::SELL && ob.getBid().begin()->first < price_ ){
-                    new_order = Order(id,OrderType::LIMIT,Side::SELL,price_,remaining);
-                    ob.addOrder(new_order);
+                if (side == Side::SELL && opp_type.begin()->first < price_ ){
+                    // new_order = Order(id,OrderType::LIMIT,Side::SELL,price_,remaining);
+                    // ob.addOrder(new_order);
                     break;
                 }
             }

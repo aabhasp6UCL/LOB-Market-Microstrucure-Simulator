@@ -26,7 +26,6 @@ public:
 
     void addOrder(Order order);
     void cancelOrder(Order order);
-    void editOrder(Order order);
     void processEvent(MarketEvent event);
 
 };
