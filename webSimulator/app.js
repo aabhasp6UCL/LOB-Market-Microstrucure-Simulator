@@ -177,15 +177,20 @@ function processNextHistoricalEvent() {
 }
 
 function renderBook() {
-    const bidBody = $("bidBody");
-    const askBody = $("askBody");
+    const bidBook = $("bidBook");
+    const bidPriceBook = $("bidPriceBook");
+    const marketColumn = $("marketColumn");
+    const askPriceBook = $("askPriceBook");
+    const askBook = $("askBook");
 
-    if (!bidBody || !askBody) {
+    if (!bidBook || !bidPriceBook || !marketColumn || !askPriceBook || !askBook) {
         return;
     }
 
-    bidBody.innerHTML = "";
-    askBody.innerHTML = "";
+    bidBook.innerHTML = "";
+    bidPriceBook.innerHTML = "";
+    askPriceBook.innerHTML = "";
+    askBook.innerHTML = "";
 
     const bids = state.bids.slice(0, state.levels);
     const asks = state.asks.slice(0, state.levels);
@@ -200,49 +205,45 @@ function renderBook() {
         const bid = bids[i];
         const ask = asks[i];
 
-        const bidRow = document.createElement("tr");
-        const askRow = document.createElement("tr");
+        const bidRow = document.createElement("div");
+        bidRow.className = "book-row";
 
         if (bid) {
             const width = (bid.volume / maxVolume) * 100;
 
             bidRow.innerHTML = `
-                <td class="depth-cell">
-                    <div class="depth-bar bid-bar" style="width:${width}%"></div>
-                    <span>${bid.orders}</span>
-                </td>
-                <td class="size">${bid.volume}</td>
-                <td class="price bid-price">${fmt(bid.price)}</td>
-            `;
-        } else {
-            bidRow.innerHTML = `
-                <td></td>
-                <td></td>
-                <td></td>
+                <div class="bar" style="width:${width}%"></div>
+                <span class="volume">${bid.volume}</span>
+                <span class="count">${bid.orders}</span>
             `;
         }
+
+        bidBook.appendChild(bidRow);
+
+        const bidPriceRow = document.createElement("div");
+        bidPriceRow.className = "price-row" + (bid && i === 0 ? " best-bid" : "");
+        bidPriceRow.textContent = bid ? fmt(bid.price) : "";
+        bidPriceBook.appendChild(bidPriceRow);
+
+        const askRow = document.createElement("div");
+        askRow.className = "book-row";
 
         if (ask) {
             const width = (ask.volume / maxVolume) * 100;
 
             askRow.innerHTML = `
-                <td class="price ask-price">${fmt(ask.price)}</td>
-                <td class="size">${ask.volume}</td>
-                <td class="depth-cell">
-                    <div class="depth-bar ask-bar" style="width:${width}%"></div>
-                    <span>${ask.orders}</span>
-                </td>
-            `;
-        } else {
-            askRow.innerHTML = `
-                <td></td>
-                <td></td>
-                <td></td>
+                <span class="count">${ask.orders}</span>
+                <span class="volume">${ask.volume}</span>
+                <div class="bar" style="width:${width}%"></div>
             `;
         }
 
-        bidBody.appendChild(bidRow);
-        askBody.appendChild(askRow);
+        askBook.appendChild(askRow);
+
+        const askPriceRow = document.createElement("div");
+        askPriceRow.className = "price-row" + (ask && i === 0 ? " best-ask" : "");
+        askPriceRow.textContent = ask ? fmt(ask.price) : "";
+        askPriceBook.appendChild(askPriceRow);
     }
 
     const bid5 = bids
@@ -271,6 +272,17 @@ function renderBook() {
             state.bestAsk * ask5
         ) / total
         : null;
+
+    marketColumn.innerHTML = `
+        <div class="market-mid">
+            <span class="market-mid-label">MID</span>
+            <span class="market-mid-price">${state.mid !== null ? fmt(state.mid) : "--"}</span>
+        </div>
+        <div class="market-spread">
+            <span class="market-spread-label">SPREAD</span>
+            <span class="market-spread-value">${spread !== null ? fmt(spread) : "--"}</span>
+        </div>
+    `;
 
     if ($("imbalance")) {
         $("imbalance").textContent = `${fmt(imbalance, 1)}%`;
@@ -417,6 +429,10 @@ function renderChart() {
 function renderState() {
     if ($("eventId")) {
         $("eventId").textContent = state.eventId;
+    }
+
+    if ($("bookEventId")) {
+        $("bookEventId").textContent = state.eventId;
     }
 
     if ($("simTime")) {

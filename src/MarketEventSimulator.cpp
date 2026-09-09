@@ -115,28 +115,39 @@ json parseRow(std::map<double, std::queue<Order>, std::greater<double>>& bid,
 json parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& bid,
         std::map<double, std::queue<Order>, std::less<double>>& ask){
 
+    // app.js only ever renders the top state.levels (14) rows per side, so
+    // walking/serializing the full book depth here was pure wasted work and
+    // wasted memory -- it's what made every snapshot far bigger than needed.
+    constexpr int MAX_LEVELS = 20;
+
     json OrderBook = json::array();
     auto bid_it = bid.begin();
     auto ask_it = ask.begin();
 
-
-    while (bid_it != bid.end() && ask_it != ask.end()){
+    int levels = 0;
+    while (bid_it != bid.end() && ask_it != ask.end() && levels < MAX_LEVELS){
         
         json row = parseRow(bid,ask,bid_it->first,ask_it->first);
         OrderBook.push_back(row);
         bid_it++;
         ask_it++;
+        levels++;
     }
     return OrderBook;
-    std::ofstream file("webSimulator/OrderBook.json");
-    file << OrderBook.dump(4);
-    file.close();
 }
 
 static void readMarketEvents() {
     std::ifstream file("Order_book_file/AAPL_2012-06-21_34200000_57600000_message_1.csv");
     std::string line;
     json simulation = json::array();
+
+    // app.js's playback window defaults to state.eventId = 9000, i.e. a
+    // 1000-event animation after the first 8000 are replayed to build the
+    // starting book. Without a stop point here, the loop tried to keep
+    // snapshotting all ~75,000 remaining events in the file, which is why
+    // it never finished (it got killed for using too much memory before
+    // Simulation.json was ever written).
+    constexpr int SIMULATION_END = 9000;
 
     int i = 0;
     while (std::getline(file, line)) {
@@ -167,8 +178,11 @@ static void readMarketEvents() {
         i++;
 
         if (i == 8000){
-            parseOrderBook(ob.getBid(),ob.getAsk());
-            continue;;
+            json initialBook = parseOrderBook(ob.getBid(),ob.getAsk());
+            std::ofstream initFile("webSimulator/OrderBook.json");
+            initFile << initialBook.dump(4);
+            initFile.close();
+            continue;
         }
         if (i > 8000){
             json snapshot = parseOrderBook(ob.getBid(),ob.getAsk());
@@ -177,6 +191,10 @@ static void readMarketEvents() {
             event["timestamp"] = timestamp;
             event["orderBook"] = snapshot;
             simulation.push_back(event);
+
+            if (i >= SIMULATION_END){
+                break;
+            }
         }
     }
     std::ofstream output("webSimulator/Simulation.json");  
