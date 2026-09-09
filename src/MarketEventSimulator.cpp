@@ -112,7 +112,7 @@ json parseRow(std::map<double, std::queue<Order>, std::greater<double>>& bid,
             return j;
 } 
 
-void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& bid,
+json parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& bid,
         std::map<double, std::queue<Order>, std::less<double>>& ask){
 
     json OrderBook = json::array();
@@ -127,6 +127,7 @@ void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& b
         bid_it++;
         ask_it++;
     }
+    return OrderBook;
     std::ofstream file("webSimulator/OrderBook.json");
     file << OrderBook.dump(4);
     file.close();
@@ -135,6 +136,7 @@ void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& b
 static void readMarketEvents() {
     std::ifstream file("Order_book_file/AAPL_2012-06-21_34200000_57600000_message_1.csv");
     std::string line;
+    json simulation = json::array();
 
     int i = 0;
     while (std::getline(file, line)) {
@@ -150,6 +152,7 @@ static void readMarketEvents() {
             continue;
         }
 
+
         Side side = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
         Order order(orderId, price, quantity, side, OrderType::LIMIT);
         parseOrder(order);
@@ -164,15 +167,24 @@ static void readMarketEvents() {
         i++;
 
         if (i == 8000){
-            break;
+            parseOrderBook(ob.getBid(),ob.getAsk());
+            continue;;
+        }
+        if (i > 8000){
+            json snapshot = parseOrderBook(ob.getBid(),ob.getAsk());
+            json event;
+            event["eventId"] = i;
+            event["timestamp"] = timestamp;
+            event["orderBook"] = snapshot;
+            simulation.push_back(event);
         }
     }
-    parseOrderBook(ob.getBid(),ob.getAsk());
+    std::ofstream output("webSimulator/Simulation.json");  
+    output << simulation.dump(4);
+    output.close();
 }
 
-int main()
-{
+int main(){
     readMarketEvents();
-
     return 0;
 }

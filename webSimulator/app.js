@@ -1,322 +1,730 @@
-const state={levels:14,playing:false,timer:null,speed:5,eventId:1,lastPrice:null,mid:null,bestBid:null,bestAsk:null,bids:[],asks:[],trades:[],prices:[],eventType:'READY',simSeconds:0,buyVolume:0,sellVolume:0};
-const $=id=>document.getElementById(id);
-function pad(n,d=2){return String(n).padStart(d,'0')}
-function formatTime(sec){const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60,si=Math.floor(s),ms=Math.floor((s-si)*1000);return`${pad(h)}:${pad(m)}:${pad(si)}.${pad(ms,3)}`}
-function fmt(n,d=2){return Number(n).toFixed(d)}
+const state = {
+    levels: 14,
+    playing: false,
+    timer: null,
+    speed: 5,
+    eventId: 9000,
+    lastPrice: null,
+    mid: null,
+    bestBid: null,
+    bestAsk: null,
+    bids: [],
+    asks: [],
+    trades: [],
+    prices: [],
+    eventType: "READY",
+    simSeconds: 0,
+    buyVolume: 0,
+    sellVolume: 0
+};
 
-async function loadOrderBook(){
-    try{
-        const response=await fetch("OrderBook.json");
-        if(!response.ok)throw new Error("Could not load OrderBook.json");
-        const data=await response.json();
+let simulation = [];
+let currentEvent = 0;
 
-        state.bids=data.map(row=>({
-            price:Number(row.bid_price),
-            volume:Number(row.bid.size),
-            orders:Number(row.bid.orders)
-        })).filter(x=>Number.isFinite(x.price)&&x.volume>0);
+const $ = id => document.getElementById(id);
 
-        state.asks=data.map(row=>({
-            price:Number(row.ask_price),
-            volume:Number(row.ask.size),
-            orders:Number(row.ask.orders)
-        })).filter(x=>Number.isFinite(x.price)&&x.volume>0);
+function pad(n, d = 2) {
+    return String(n).padStart(d, "0");
+}
 
-        state.bids.sort((a,b)=>b.price-a.price);
-        state.asks.sort((a,b)=>a.price-b.price);
+function formatTime(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const si = Math.floor(s);
+    const ms = Math.floor((s - si) * 1000);
 
-        state.bestBid=state.bids.length?state.bids[0].price:null;
-        state.bestAsk=state.asks.length?state.asks[0].price:null;
-        state.mid=state.bestBid!==null&&state.bestAsk!==null?(state.bestBid+state.bestAsk)/2:null;
-        state.lastPrice=state.mid;
+    return `${pad(h)}:${pad(m)}:${pad(si)}.${pad(ms, 3)}`;
+}
 
-        if(state.mid!==null){
-            state.prices.push(state.mid);
-            state.prices=state.prices.slice(-110);
+function fmt(n, d = 2) {
+    return Number(n).toFixed(d);
+}
+
+async function loadSimulation() {
+    try {
+        const response = await fetch("Simulation.json?t=" + Date.now());
+
+        if (!response.ok) {
+            throw new Error("Could not load Simulation.json");
         }
 
-        state.eventType='READY';
+        simulation = await response.json();
+
+        if (!Array.isArray(simulation)) {
+            throw new Error("Simulation.json must contain an array");
+        }
+
+        if (simulation.length === 0) {
+            throw new Error("Simulation.json is empty");
+        }
+
+        currentEvent = 0;
+
+        const firstEvent = simulation[0];
+
+        if (firstEvent.orderBook) {
+            updateOrderBook(firstEvent.orderBook);
+        } else {
+            updateOrderBook(firstEvent);
+        }
+
+        state.eventId = firstEvent.eventId ?? 9000;
+        state.eventType = "READY";
+
+        if (firstEvent.timestamp !== undefined) {
+            state.simSeconds = firstEvent.timestamp;
+        }
+
         renderState();
 
-        console.log("Order book loaded from C++ JSON");
-    }catch(error){
-        console.error("Failed to load OrderBook.json:",error);
+        console.log(`Loaded ${simulation.length} historical events`);
+
+    } catch (error) {
+        console.error("Simulation loading error:", error);
     }
 }
 
-function renderBook(){
-    const bids=state.bids.slice(0,state.levels);
-    const asks=state.asks.slice(0,state.levels);
-    const maxVol=Math.max(...bids.map(x=>x.volume),...asks.map(x=>x.volume),1);
+function updateOrderBook(data) {
+    if (!Array.isArray(data)) {
+        return;
+    }
 
-    $('bidBook').innerHTML='';
-    $('bidPriceBook').innerHTML='';
-    $('askPriceBook').innerHTML='';
-    $('askBook').innerHTML='';
+    state.bids = [];
+    state.asks = [];
 
-    for(let i=0;i<Math.max(bids.length,asks.length);i++){
-        if(i<bids.length){
-            const bid=bids[i];
-
-            const bidRow=document.createElement('div');
-            bidRow.className='book-row';
-
-            const bidBar=document.createElement('div');
-            bidBar.className='bar';
-            bidBar.style.width=`${Math.max(8,bid.volume/maxVol*100)}%`;
-
-            const bidVolume=document.createElement('span');
-            bidVolume.className='volume';
-            bidVolume.textContent=bid.volume.toLocaleString();
-
-            const bidCount=document.createElement('span');
-            bidCount.className='count';
-            bidCount.textContent=bid.orders;
-
-            bidRow.append(bidVolume,bidCount,bidBar);
-            $('bidBook').appendChild(bidRow);
-
-            const bidPriceRow=document.createElement('div');
-            bidPriceRow.className='price-row'+(i===0?' inside':'');
-            bidPriceRow.textContent=fmt(bid.price);
-            $('bidPriceBook').appendChild(bidPriceRow);
+    data.forEach(row => {
+        if (
+            row.bid_price !== undefined &&
+            row.bid &&
+            Number(row.bid.size) > 0
+        ) {
+            state.bids.push({
+                price: Number(row.bid_price),
+                volume: Number(row.bid.size),
+                orders: Number(row.bid.orders)
+            });
         }
 
-        if(i<asks.length){
-            const ask=asks[i];
-
-            const askRow=document.createElement('div');
-            askRow.className='book-row';
-
-            const askBar=document.createElement('div');
-            askBar.className='bar';
-            askBar.style.width=`${Math.max(8,ask.volume/maxVol*100)}%`;
-
-            const askCount=document.createElement('span');
-            askCount.className='count';
-            askCount.textContent=ask.orders;
-
-            const askVolume=document.createElement('span');
-            askVolume.className='volume';
-            askVolume.textContent=ask.volume.toLocaleString();
-
-            askRow.append(askCount,askVolume,askBar);
-            $('askBook').appendChild(askRow);
-
-            const askPriceRow=document.createElement('div');
-            askPriceRow.className='price-row'+(i===0?' inside':'');
-            askPriceRow.textContent=fmt(ask.price);
-            $('askPriceBook').appendChild(askPriceRow);
+        if (
+            row.ask_price !== undefined &&
+            row.ask &&
+            Number(row.ask.size) > 0
+        ) {
+            state.asks.push({
+                price: Number(row.ask_price),
+                volume: Number(row.ask.size),
+                orders: Number(row.ask.orders)
+            });
         }
-    }
+    });
 
-    const bid5=bids.slice(0,5).reduce((a,x)=>a+x.volume,0);
-    const ask5=asks.slice(0,5).reduce((a,x)=>a+x.volume,0);
-    const total=bid5+ask5;
-    const imbalance=total?(bid5-ask5)/total*100:0;
-    const spread=state.bestBid!==null&&state.bestAsk!==null?state.bestAsk-state.bestBid:0;
-    const vwap=total?(state.bestBid*bid5+state.bestAsk*ask5)/total:0;
+    state.bids.sort((a, b) => b.price - a.price);
+    state.asks.sort((a, b) => a.price - b.price);
 
-    $('imbalance').textContent=`${imbalance>=0?'+':''}${imbalance.toFixed(1)}%`;
-    $('imbalance').style.color=imbalance>=0?'var(--green)':'var(--red)';
-    $('visibleDepth').textContent=total.toLocaleString();
-    $('vwap').textContent=fmt(vwap,4);
-    $('bestBid').textContent=state.bestBid!==null?fmt(state.bestBid,4):'--';
-    $('bestAsk').textContent=state.bestAsk!==null?fmt(state.bestAsk,4):'--';
-    $('midPrice').textContent=state.mid!==null?fmt(state.mid,4):'--';
-    $('spread').textContent=state.bestBid!==null?fmt(spread,4):'--';
-    $('lastTrade').textContent=state.lastPrice!==null?fmt(state.lastPrice,4):'--';
-    $('bookMid').textContent=state.mid!==null?fmt(state.mid,4):'--';
-    $('bidDepth').textContent=bid5.toLocaleString();
-    $('askDepth').textContent=ask5.toLocaleString();
-}
+    state.bestBid = state.bids.length
+        ? state.bids[0].price
+        : null;
 
-function renderTape(){
-    $('tapeBody').innerHTML=state.trades.map(t=>`<div class="tape-row"><span>${t.time}</span><span>${fmt(t.price)}</span><span>${t.size.toLocaleString()}</span><span class="tape-side ${t.side==='BUY'?'trade-up':'trade-down'}">${t.side}</span></div>`).join('');
-    const t=state.trades[0];
-    $('lastTradeSize').textContent=t?`${t.size} @ ${t.time}`:'--';
-}
+    state.bestAsk = state.asks.length
+        ? state.asks[0].price
+        : null;
 
-function renderChart(){
-    const canvas=$('priceChart');
-    const rect=canvas.getBoundingClientRect();
-    const dpr=window.devicePixelRatio||1;
-    canvas.width=Math.max(1,rect.width*dpr);
-    canvas.height=Math.max(1,rect.height*dpr);
-    const ctx=canvas.getContext('2d');
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    if (state.bestBid !== null && state.bestAsk !== null) {
+        state.mid = (state.bestBid + state.bestAsk) / 2;
 
-    const w=rect.width;
-    const h=rect.height;
-    const p=state.prices.length?state.prices:[state.mid??0];
-    const min=Math.min(...p)-.008;
-    const max=Math.max(...p)+.008;
-    const x=i=>8+(w-24)*i/(p.length-1||1);
-    const y=v=>8+(h-18)*(1-(v-min)/(max-min||1));
-
-    ctx.clearRect(0,0,w,h);
-    ctx.beginPath();
-    p.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));
-    ctx.lineWidth=1.5;
-    ctx.strokeStyle='#d6dee9';
-    ctx.stroke();
-
-    const last=p[p.length-1];
-    ctx.beginPath();
-    ctx.arc(x(p.length-1),y(last),3.2,0,Math.PI*2);
-    ctx.fillStyle='#fff';
-    ctx.fill();
-
-    $('yLabels').innerHTML=[max,(max+min)/2,min].map(v=>`<span>${v.toFixed(4)}</span>`).join('');
-    $('chartLow').textContent=`LOW ${min.toFixed(4)}`;
-    $('chartHigh').textContent=`HIGH ${max.toFixed(4)}`;
-
-    const ch=p.length>1?(last-p[0])/p[0]*100:0;
-    $('chartChange').textContent=`${ch>=0?'+':''}${ch.toFixed(3)}%`;
-    $('chartChange').style.color=ch>=0?'var(--green)':'var(--red)';
-}
-
-function setOrderFormSide(side){
-    $('buyOrderBtn').classList.toggle('active',side==='bid');
-    $('sellOrderBtn').classList.toggle('active',side==='ask');
-
-    const submit=$('submitOrderBtn');
-    submit.classList.toggle('buy',side==='bid');
-    submit.classList.toggle('sell',side==='ask');
-    submit.textContent=side==='bid'?'PLACE BUY ORDER':'PLACE SELL ORDER';
-}
-
-function addUserOrder(){
-    const side=$('buyOrderBtn').classList.contains('active')?'bid':'ask';
-    const price=Number($('orderPrice').value);
-    const size=Number($('orderSize').value);
-    const message=$('orderFormMessage');
-
-    if(!Number.isFinite(price)||price<=0){
-        message.textContent='Enter a valid price.';
-        message.className='order-form-message error';
-        return;
-    }
-
-    if(!Number.isInteger(size)||size<=0){
-        message.textContent='Enter a valid integer size.';
-        message.className='order-form-message error';
-        return;
-    }
-
-    const roundedPrice=+price.toFixed(2);
-
-    if(side==='bid'&&state.bestAsk!==null&&roundedPrice>=state.bestAsk){
-        message.textContent=`BUY price must be below best ask ${fmt(state.bestAsk,4)}.`;
-        message.className='order-form-message error';
-        return;
-    }
-
-    if(side==='ask'&&state.bestBid!==null&&roundedPrice<=state.bestBid){
-        message.textContent=`SELL price must be above best bid ${fmt(state.bestBid,4)}.`;
-        message.className='order-form-message error';
-        return;
-    }
-
-    const book=side==='bid'?state.bids:state.asks;
-    const level=book.find(x=>x.price===roundedPrice);
-
-    if(level){
-        level.volume+=size;
-        level.orders+=1;
-    }else{
-        book.push({price:roundedPrice,volume:size,orders:1});
-    }
-
-    if(side==='bid')book.sort((a,b)=>b.price-a.price);
-    else book.sort((a,b)=>a.price-b.price);
-
-    state.bestBid=state.bids.length?state.bids[0].price:null;
-    state.bestAsk=state.asks.length?state.asks[0].price:null;
-    state.mid=state.bestBid!==null&&state.bestAsk!==null?(state.bestBid+state.bestAsk)/2:null;
-    state.lastPrice=state.lastPrice;
-    state.eventId++;
-    state.eventType='USER_LIMIT_ADD';
-
-    if(state.mid!==null){
         state.prices.push(state.mid);
-        state.prices=state.prices.slice(-110);
+
+        if (state.prices.length > 110) {
+            state.prices.shift();
+        }
     }
+}
+
+function processNextHistoricalEvent() {
+    if (currentEvent >= simulation.length) {
+        stopSimulation();
+        return false;
+    }
+
+    const event = simulation[currentEvent];
+
+    if (event.orderBook) {
+        updateOrderBook(event.orderBook);
+    } else {
+        updateOrderBook(event);
+    }
+
+    if (event.eventId !== undefined) {
+        state.eventId = event.eventId;
+    } else {
+        state.eventId++;
+    }
+
+    if (event.timestamp !== undefined) {
+        state.simSeconds = Number(event.timestamp);
+    } else {
+        state.simSeconds += 0.001;
+    }
+
+    state.eventType = event.type || "HISTORICAL";
+
+    currentEvent++;
 
     renderState();
 
-    message.textContent=`${side==='bid'?'BUY':'SELL'} order added: ${size.toLocaleString()} @ ${roundedPrice.toFixed(2)}`;
-    message.className='order-form-message success';
-    $('orderPrice').value='';
-    $('orderSize').value='';
+    return true;
 }
 
-function renderState(){
-    $('eventId').textContent=pad(state.eventId,6);
-    $('simTime').textContent=formatTime(state.simSeconds);
-    $('footerTime').textContent=formatTime(state.simSeconds);
+function renderBook() {
+    const bidBody = $("bidBody");
+    const askBody = $("askBody");
+
+    if (!bidBody || !askBody) {
+        return;
+    }
+
+    bidBody.innerHTML = "";
+    askBody.innerHTML = "";
+
+    const bids = state.bids.slice(0, state.levels);
+    const asks = state.asks.slice(0, state.levels);
+
+    const maxVolume = Math.max(
+        ...bids.map(x => x.volume),
+        ...asks.map(x => x.volume),
+        1
+    );
+
+    for (let i = 0; i < state.levels; i++) {
+        const bid = bids[i];
+        const ask = asks[i];
+
+        const bidRow = document.createElement("tr");
+        const askRow = document.createElement("tr");
+
+        if (bid) {
+            const width = (bid.volume / maxVolume) * 100;
+
+            bidRow.innerHTML = `
+                <td class="depth-cell">
+                    <div class="depth-bar bid-bar" style="width:${width}%"></div>
+                    <span>${bid.orders}</span>
+                </td>
+                <td class="size">${bid.volume}</td>
+                <td class="price bid-price">${fmt(bid.price)}</td>
+            `;
+        } else {
+            bidRow.innerHTML = `
+                <td></td>
+                <td></td>
+                <td></td>
+            `;
+        }
+
+        if (ask) {
+            const width = (ask.volume / maxVolume) * 100;
+
+            askRow.innerHTML = `
+                <td class="price ask-price">${fmt(ask.price)}</td>
+                <td class="size">${ask.volume}</td>
+                <td class="depth-cell">
+                    <div class="depth-bar ask-bar" style="width:${width}%"></div>
+                    <span>${ask.orders}</span>
+                </td>
+            `;
+        } else {
+            askRow.innerHTML = `
+                <td></td>
+                <td></td>
+                <td></td>
+            `;
+        }
+
+        bidBody.appendChild(bidRow);
+        askBody.appendChild(askRow);
+    }
+
+    const bid5 = bids
+        .slice(0, 5)
+        .reduce((sum, x) => sum + x.volume, 0);
+
+    const ask5 = asks
+        .slice(0, 5)
+        .reduce((sum, x) => sum + x.volume, 0);
+
+    const total = bid5 + ask5;
+
+    const imbalance = total > 0
+        ? ((bid5 - ask5) / total) * 100
+        : 0;
+
+    const spread =
+        state.bestBid !== null &&
+        state.bestAsk !== null
+            ? state.bestAsk - state.bestBid
+            : null;
+
+    const vwap = total > 0
+        ? (
+            state.bestBid * bid5 +
+            state.bestAsk * ask5
+        ) / total
+        : null;
+
+    if ($("imbalance")) {
+        $("imbalance").textContent = `${fmt(imbalance, 1)}%`;
+    }
+
+    if ($("visibleDepth")) {
+        $("visibleDepth").textContent = `${bid5 + ask5}`;
+    }
+
+    if ($("vwap")) {
+        $("vwap").textContent =
+            vwap !== null ? fmt(vwap) : "--";
+    }
+
+    if ($("bestBid")) {
+        $("bestBid").textContent =
+            state.bestBid !== null
+                ? fmt(state.bestBid)
+                : "--";
+    }
+
+    if ($("bestAsk")) {
+        $("bestAsk").textContent =
+            state.bestAsk !== null
+                ? fmt(state.bestAsk)
+                : "--";
+    }
+
+    if ($("midPrice")) {
+        $("midPrice").textContent =
+            state.mid !== null
+                ? fmt(state.mid)
+                : "--";
+    }
+
+    if ($("spread")) {
+        $("spread").textContent =
+            spread !== null
+                ? fmt(spread)
+                : "--";
+    }
+
+    if ($("bookMid")) {
+        $("bookMid").textContent =
+            state.mid !== null
+                ? fmt(state.mid)
+                : "--";
+    }
+
+    if ($("bidDepth")) {
+        $("bidDepth").textContent = bid5;
+    }
+
+    if ($("askDepth")) {
+        $("askDepth").textContent = ask5;
+    }
+}
+
+function renderTape() {
+    const tapeBody = $("tapeBody");
+
+    if (!tapeBody) {
+        return;
+    }
+
+    tapeBody.innerHTML = "";
+
+    state.trades.slice().reverse().forEach(trade => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${trade.time ?? "--"}</td>
+            <td>${fmt(trade.price)}</td>
+            <td>${trade.quantity}</td>
+        `;
+
+        tapeBody.appendChild(row);
+    });
+
+    if ($("lastTradeSize") && state.trades.length > 0) {
+        const latest = state.trades[state.trades.length - 1];
+        $("lastTradeSize").textContent = latest.quantity;
+    }
+}
+
+function renderChart() {
+    const canvas = $("priceChart");
+
+    if (!canvas || state.prices.length === 0) {
+        return;
+    }
+
+    const ctx = canvas.getContext("2d");
+
+    const width = canvas.width = canvas.clientWidth;
+    const height = canvas.height = canvas.clientHeight;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const prices = state.prices;
+
+    if (prices.length < 2) {
+        return;
+    }
+
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+
+    const range = max - min || 1;
+
+    ctx.beginPath();
+
+    prices.forEach((price, index) => {
+        const x = (index / (prices.length - 1)) * width;
+        const y = height - ((price - min) / range) * height;
+
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+
+    if ($("chartLow")) {
+        $("chartLow").textContent = fmt(min);
+    }
+
+    if ($("chartHigh")) {
+        $("chartHigh").textContent = fmt(max);
+    }
+
+    if ($("chartChange")) {
+        const change =
+            prices.length > 1
+                ? prices[prices.length - 1] - prices[0]
+                : 0;
+
+        $("chartChange").textContent = fmt(change);
+    }
+}
+
+function renderState() {
+    if ($("eventId")) {
+        $("eventId").textContent = state.eventId;
+    }
+
+    if ($("simTime")) {
+        $("simTime").textContent = formatTime(state.simSeconds);
+    }
+
+    if ($("footerTime")) {
+        $("footerTime").textContent = formatTime(state.simSeconds);
+    }
+
     renderBook();
     renderTape();
     renderChart();
 }
 
-async function nextEvent(){
-    await loadOrderBook();
-    state.eventId++;
-    state.simSeconds+=.001;
-    renderState();
-}
+function setOrderFormSide(side) {
+    const buyButton = $("buyOrderBtn");
+    const sellButton = $("sellOrderBtn");
+    const submitButton = $("submitOrderBtn");
 
-function stop(){
-    if(state.timer){
-        clearInterval(state.timer);
-        state.timer=null;
+    if (!buyButton || !sellButton || !submitButton) {
+        return;
     }
-    state.playing=false;
-    $('playButton').textContent='▶ PLAY';
+
+    if (side === "BUY") {
+        buyButton.classList.add("active");
+        sellButton.classList.remove("active");
+
+        submitButton.textContent = "Place Buy Order";
+        submitButton.classList.add("buy");
+        submitButton.classList.remove("sell");
+    } else {
+        sellButton.classList.add("active");
+        buyButton.classList.remove("active");
+
+        submitButton.textContent = "Place Sell Order";
+        submitButton.classList.add("sell");
+        submitButton.classList.remove("buy");
+    }
 }
 
-function start(){
-    stop();
-    state.playing=true;
-    $('playButton').textContent='❚❚ PAUSE';
-    const delay=Math.max(35,700/state.speed);
-    state.timer=setInterval(nextEvent,delay);
-}
+function addUserOrder() {
+    const priceInput = $("orderPrice");
+    const sizeInput = $("orderSize");
 
-async function reset(){
-    stop();
-    state.eventId=1;
-    state.simSeconds=0;
-    state.prices=[];
-    await loadOrderBook();
-    state.eventType='RESET';
+    if (!priceInput || !sizeInput) {
+        return;
+    }
+
+    const price = Number(priceInput.value);
+    const size = Number(sizeInput.value);
+
+    if (!Number.isFinite(price) || price <= 0) {
+        return;
+    }
+
+    if (!Number.isInteger(size) || size <= 0) {
+        return;
+    }
+
+    const side =
+        $("buyOrderBtn") &&
+        $("buyOrderBtn").classList.contains("active")
+            ? "BUY"
+            : "SELL";
+
+    if (
+        side === "BUY" &&
+        state.bestAsk !== null &&
+        price >= state.bestAsk
+    ) {
+        alert("Buy price would cross the best ask.");
+        return;
+    }
+
+    if (
+        side === "SELL" &&
+        state.bestBid !== null &&
+        price <= state.bestBid
+    ) {
+        alert("Sell price would cross the best bid.");
+        return;
+    }
+
+    if (side === "BUY") {
+        const existing = state.bids.find(x => x.price === price);
+
+        if (existing) {
+            existing.volume += size;
+            existing.orders++;
+        } else {
+            state.bids.push({
+                price,
+                volume: size,
+                orders: 1
+            });
+        }
+
+        state.bids.sort((a, b) => b.price - a.price);
+    } else {
+        const existing = state.asks.find(x => x.price === price);
+
+        if (existing) {
+            existing.volume += size;
+            existing.orders++;
+        } else {
+            state.asks.push({
+                price,
+                volume: size,
+                orders: 1
+            });
+        }
+
+        state.asks.sort((a, b) => a.price - b.price);
+    }
+
+    state.eventId++;
+    state.eventType = "USER_LIMIT_ADD";
+
+    if (
+        state.bestBid !== null &&
+        state.bestAsk !== null
+    ) {
+        state.mid = (state.bestBid + state.bestAsk) / 2;
+        state.prices.push(state.mid);
+    }
+
     renderState();
+
+    if ($("orderMessage")) {
+        $("orderMessage").textContent =
+            `${side} order added successfully.`;
+    }
 }
 
-$('nextEvent').addEventListener('click',nextEvent);
-$('previousEvent').addEventListener('click',()=>{});
-$('playButton').addEventListener('click',()=>state.playing?stop():start());
-$('resetButton').addEventListener('click',reset);
+function startSimulation() {
+    if (state.playing) {
+        return;
+    }
 
-$('speedSlider').addEventListener('input',e=>{
-    state.speed=Number(e.target.value);
-    $('speedValue').textContent=`${state.speed.toFixed(2).replace(/0$/,'')}x`;
-    if(state.playing)start();
-});
+    state.playing = true;
 
-$('addOrderBtn').addEventListener('click',()=>{
-    $('orderForm').classList.toggle('hidden');
-    $('orderFormMessage').textContent='';
-});
+    if ($("playButton")) {
+        $("playButton").textContent = "Pause";
+    }
 
-$('closeOrderForm').addEventListener('click',()=>{
-    $('orderForm').classList.add('hidden');
-});
+    scheduleNextEvent();
+}
 
-$('buyOrderBtn').addEventListener('click',()=>setOrderFormSide('bid'));
-$('sellOrderBtn').addEventListener('click',()=>setOrderFormSide('ask'));
-$('submitOrderBtn').addEventListener('click',addUserOrder);
-window.addEventListener('resize',renderChart);
+function scheduleNextEvent() {
+    if (!state.playing) {
+        return;
+    }
 
-loadOrderBook();
+    if (currentEvent >= simulation.length) {
+        stopSimulation();
+        return;
+    }
+
+    const delay = Math.max(
+        35,
+        700 / state.speed
+    );
+
+    state.timer = setTimeout(() => {
+        processNextHistoricalEvent();
+        scheduleNextEvent();
+    }, delay);
+}
+
+function stopSimulation() {
+    state.playing = false;
+
+    if (state.timer) {
+        clearTimeout(state.timer);
+        state.timer = null;
+    }
+
+    if ($("playButton")) {
+        $("playButton").textContent = "Play";
+    }
+}
+
+function resetSimulation() {
+    stopSimulation();
+
+    currentEvent = 0;
+
+    state.eventId = 9000;
+    state.eventType = "READY";
+    state.simSeconds = 0;
+    state.lastPrice = null;
+    state.mid = null;
+    state.bestBid = null;
+    state.bestAsk = null;
+    state.bids = [];
+    state.asks = [];
+    state.trades = [];
+    state.prices = [];
+    state.buyVolume = 0;
+    state.sellVolume = 0;
+
+    loadSimulation();
+}
+
+function previousEvent() {
+    if (currentEvent <= 1) {
+        return;
+    }
+
+    currentEvent -= 2;
+
+    processNextHistoricalEvent();
+}
+
+if ($("nextEvent")) {
+    $("nextEvent").addEventListener(
+        "click",
+        processNextHistoricalEvent
+    );
+}
+
+if ($("previousEvent")) {
+    $("previousEvent").addEventListener(
+        "click",
+        previousEvent
+    );
+}
+
+if ($("playButton")) {
+    $("playButton").addEventListener(
+        "click",
+        () => {
+            if (state.playing) {
+                stopSimulation();
+            } else {
+                startSimulation();
+            }
+        }
+    );
+}
+
+if ($("resetButton")) {
+    $("resetButton").addEventListener(
+        "click",
+        resetSimulation
+    );
+}
+
+if ($("speedSlider")) {
+    $("speedSlider").addEventListener(
+        "input",
+        event => {
+            state.speed = Number(event.target.value);
+        }
+    );
+}
+
+if ($("addOrderBtn")) {
+    $("addOrderBtn").addEventListener(
+        "click",
+        () => {
+            const form = $("orderForm");
+
+            if (form) {
+                form.style.display = "block";
+            }
+        }
+    );
+}
+
+if ($("closeOrderForm")) {
+    $("closeOrderForm").addEventListener(
+        "click",
+        () => {
+            const form = $("orderForm");
+
+            if (form) {
+                form.style.display = "none";
+            }
+        }
+    );
+}
+
+if ($("buyOrderBtn")) {
+    $("buyOrderBtn").addEventListener(
+        "click",
+        () => setOrderFormSide("BUY")
+    );
+}
+
+if ($("sellOrderBtn")) {
+    $("sellOrderBtn").addEventListener(
+        "click",
+        () => setOrderFormSide("SELL")
+    );
+}
+
+if ($("submitOrderBtn")) {
+    $("submitOrderBtn").addEventListener(
+        "click",
+        addUserOrder
+    );
+}
+
+window.addEventListener(
+    "resize",
+    renderChart
+);
+
+loadSimulation();
