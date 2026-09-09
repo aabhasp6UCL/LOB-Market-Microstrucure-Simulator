@@ -1,0 +1,866 @@
+[
+    {
+        "ask": {
+            "orders": 2,
+            "size": 127
+        },
+        "ask_price": 586.13,
+        "bid": {
+            "orders": 1,
+            "size": 14
+        },
+        "bid_price": 586.02
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 100
+        },
+        "ask_price": 586.15,
+        "bid": {
+            "orders": 1,
+            "size": 1
+        },
+        "bid_price": 586.01
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 100
+        },
+        "ask_price": 586.16,
+        "bid": {
+            "orders": 2,
+            "size": 1100
+        },
+        "bid_price": 586.0
+    },
+    {
+        "ask": {
+            "orders": 5,
+            "size": 236
+        },
+        "ask_price": 586.18,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.99
+    },
+    {
+        "ask": {
+            "orders": 5,
+            "size": 500
+        },
+        "ask_price": 586.19,
+        "bid": {
+            "orders": 1,
+            "size": 12
+        },
+        "bid_price": 585.95
+    },
+    {
+        "ask": {
+            "orders": 7,
+            "size": 436
+        },
+        "ask_price": 586.2,
+        "bid": {
+            "orders": 2,
+            "size": 132
+        },
+        "bid_price": 585.94
+    },
+    {
+        "ask": {
+            "orders": 4,
+            "size": 136
+        },
+        "ask_price": 586.21,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.93
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 100
+        },
+        "ask_price": 586.24,
+        "bid": {
+            "orders": 3,
+            "size": 300
+        },
+        "bid_price": 585.92
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 117
+        },
+        "ask_price": 586.25,
+        "bid": {
+            "orders": 3,
+            "size": 300
+        },
+        "bid_price": 585.91
+    },
+    {
+        "ask": {
+            "orders": 5,
+            "size": 624
+        },
+        "ask_price": 586.26,
+        "bid": {
+            "orders": 3,
+            "size": 300
+        },
+        "bid_price": 585.9
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 136
+        },
+        "ask_price": 586.27,
+        "bid": {
+            "orders": 5,
+            "size": 810
+        },
+        "bid_price": 585.89
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.29,
+        "bid": {
+            "orders": 2,
+            "size": 22
+        },
+        "bid_price": 585.88
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 118
+        },
+        "ask_price": 586.3,
+        "bid": {
+            "orders": 1,
+            "size": 8
+        },
+        "bid_price": 585.87
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 18
+        },
+        "ask_price": 586.32,
+        "bid": {
+            "orders": 1,
+            "size": 8
+        },
+        "bid_price": 585.86
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 100
+        },
+        "ask_price": 586.33,
+        "bid": {
+            "orders": 4,
+            "size": 409
+        },
+        "bid_price": 585.83
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 100
+        },
+        "ask_price": 586.35,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.82
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.37,
+        "bid": {
+            "orders": 2,
+            "size": 200
+        },
+        "bid_price": 585.81
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 36
+        },
+        "ask_price": 586.38,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.8
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 118
+        },
+        "ask_price": 586.39,
+        "bid": {
+            "orders": 0,
+            "size": 0
+        },
+        "bid_price": 585.79
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 18
+        },
+        "ask_price": 586.4,
+        "bid": {
+            "orders": 2,
+            "size": 199
+        },
+        "bid_price": 585.78
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 118
+        },
+        "ask_price": 586.41,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.77
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.42,
+        "bid": {
+            "orders": 4,
+            "size": 301
+        },
+        "bid_price": 585.76
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.43,
+        "bid": {
+            "orders": 3,
+            "size": 219
+        },
+        "bid_price": 585.75
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.44,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.74
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 18
+        },
+        "ask_price": 586.45,
+        "bid": {
+            "orders": 1,
+            "size": 50
+        },
+        "bid_price": 585.73
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.46,
+        "bid": {
+            "orders": 5,
+            "size": 688
+        },
+        "bid_price": 585.72
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.47,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.71
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.48,
+        "bid": {
+            "orders": 4,
+            "size": 305
+        },
+        "bid_price": 585.7
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 593
+        },
+        "ask_price": 586.5,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.69
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 36
+        },
+        "ask_price": 586.51,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.68
+    },
+    {
+        "ask": {
+            "orders": 7,
+            "size": 563
+        },
+        "ask_price": 586.52,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.67
+    },
+    {
+        "ask": {
+            "orders": 12,
+            "size": 897
+        },
+        "ask_price": 586.53,
+        "bid": {
+            "orders": 2,
+            "size": 200
+        },
+        "bid_price": 585.65
+    },
+    {
+        "ask": {
+            "orders": 12,
+            "size": 1876
+        },
+        "ask_price": 586.54,
+        "bid": {
+            "orders": 2,
+            "size": 200
+        },
+        "bid_price": 585.64
+    },
+    {
+        "ask": {
+            "orders": 35,
+            "size": 3140
+        },
+        "ask_price": 586.55,
+        "bid": {
+            "orders": 0,
+            "size": 0
+        },
+        "bid_price": 585.61
+    },
+    {
+        "ask": {
+            "orders": 4,
+            "size": 236
+        },
+        "ask_price": 586.56,
+        "bid": {
+            "orders": 0,
+            "size": 0
+        },
+        "bid_price": 585.57
+    },
+    {
+        "ask": {
+            "orders": 8,
+            "size": 1366
+        },
+        "ask_price": 586.57,
+        "bid": {
+            "orders": 0,
+            "size": 0
+        },
+        "bid_price": 585.55
+    },
+    {
+        "ask": {
+            "orders": 13,
+            "size": 1136
+        },
+        "ask_price": 586.58,
+        "bid": {
+            "orders": 0,
+            "size": 0
+        },
+        "bid_price": 585.53
+    },
+    {
+        "ask": {
+            "orders": 11,
+            "size": 690
+        },
+        "ask_price": 586.59,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 585.52
+    },
+    {
+        "ask": {
+            "orders": 12,
+            "size": 1938
+        },
+        "ask_price": 586.6,
+        "bid": {
+            "orders": 1,
+            "size": 200
+        },
+        "bid_price": 585.51
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 2212
+        },
+        "ask_price": 586.61,
+        "bid": {
+            "orders": 1,
+            "size": 6
+        },
+        "bid_price": 585.46
+    },
+    {
+        "ask": {
+            "orders": 8,
+            "size": 1321
+        },
+        "ask_price": 586.62,
+        "bid": {
+            "orders": 2,
+            "size": 300
+        },
+        "bid_price": 585.45
+    },
+    {
+        "ask": {
+            "orders": 9,
+            "size": 736
+        },
+        "ask_price": 586.63,
+        "bid": {
+            "orders": 3,
+            "size": 236
+        },
+        "bid_price": 585.44
+    },
+    {
+        "ask": {
+            "orders": 4,
+            "size": 271
+        },
+        "ask_price": 586.64,
+        "bid": {
+            "orders": 2,
+            "size": 36
+        },
+        "bid_price": 585.43
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 300
+        },
+        "ask_price": 586.65,
+        "bid": {
+            "orders": 1,
+            "size": 18
+        },
+        "bid_price": 585.39
+    },
+    {
+        "ask": {
+            "orders": 33,
+            "size": 5988
+        },
+        "ask_price": 586.66,
+        "bid": {
+            "orders": 1,
+            "size": 20
+        },
+        "bid_price": 585.36
+    },
+    {
+        "ask": {
+            "orders": 9,
+            "size": 533
+        },
+        "ask_price": 586.67,
+        "bid": {
+            "orders": 1,
+            "size": 8
+        },
+        "bid_price": 585.29
+    },
+    {
+        "ask": {
+            "orders": 9,
+            "size": 590
+        },
+        "ask_price": 586.68,
+        "bid": {
+            "orders": 0,
+            "size": 0
+        },
+        "bid_price": 585.27
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 218
+        },
+        "ask_price": 586.69,
+        "bid": {
+            "orders": 1,
+            "size": 8
+        },
+        "bid_price": 585.26
+    },
+    {
+        "ask": {
+            "orders": 22,
+            "size": 2011
+        },
+        "ask_price": 586.7,
+        "bid": {
+            "orders": 1,
+            "size": 18
+        },
+        "bid_price": 585.23
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 12
+        },
+        "ask_price": 586.71,
+        "bid": {
+            "orders": 1,
+            "size": 4
+        },
+        "bid_price": 585.22
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 501
+        },
+        "ask_price": 586.72,
+        "bid": {
+            "orders": 1,
+            "size": 2
+        },
+        "bid_price": 585.21
+    },
+    {
+        "ask": {
+            "orders": 4,
+            "size": 301
+        },
+        "ask_price": 586.73,
+        "bid": {
+            "orders": 3,
+            "size": 42
+        },
+        "bid_price": 585.18
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 518
+        },
+        "ask_price": 586.74,
+        "bid": {
+            "orders": 3,
+            "size": 236
+        },
+        "bid_price": 585.17
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 315
+        },
+        "ask_price": 586.75,
+        "bid": {
+            "orders": 2,
+            "size": 400
+        },
+        "bid_price": 585.16
+    },
+    {
+        "ask": {
+            "orders": 7,
+            "size": 918
+        },
+        "ask_price": 586.76,
+        "bid": {
+            "orders": 7,
+            "size": 1024
+        },
+        "bid_price": 585.15
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 718
+        },
+        "ask_price": 586.77,
+        "bid": {
+            "orders": 9,
+            "size": 1236
+        },
+        "bid_price": 585.14
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 300
+        },
+        "ask_price": 586.78,
+        "bid": {
+            "orders": 2,
+            "size": 275
+        },
+        "bid_price": 585.09
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 300
+        },
+        "ask_price": 586.79,
+        "bid": {
+            "orders": 1,
+            "size": 200
+        },
+        "bid_price": 585.04
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 840
+        },
+        "ask_price": 586.8,
+        "bid": {
+            "orders": 3,
+            "size": 236
+        },
+        "bid_price": 585.03
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 73
+        },
+        "ask_price": 586.81,
+        "bid": {
+            "orders": 3,
+            "size": 300
+        },
+        "bid_price": 585.02
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 300
+        },
+        "ask_price": 586.82,
+        "bid": {
+            "orders": 2,
+            "size": 247
+        },
+        "bid_price": 585.01
+    },
+    {
+        "ask": {
+            "orders": 5,
+            "size": 600
+        },
+        "ask_price": 586.83,
+        "bid": {
+            "orders": 2,
+            "size": 198
+        },
+        "bid_price": 585.0
+    },
+    {
+        "ask": {
+            "orders": 9,
+            "size": 740
+        },
+        "ask_price": 586.84,
+        "bid": {
+            "orders": 2,
+            "size": 200
+        },
+        "bid_price": 584.99
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 515
+        },
+        "ask_price": 586.85,
+        "bid": {
+            "orders": 2,
+            "size": 200
+        },
+        "bid_price": 584.97
+    },
+    {
+        "ask": {
+            "orders": 2,
+            "size": 140
+        },
+        "ask_price": 586.86,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 584.96
+    },
+    {
+        "ask": {
+            "orders": 12,
+            "size": 1300
+        },
+        "ask_price": 586.87,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 584.88
+    },
+    {
+        "ask": {
+            "orders": 6,
+            "size": 600
+        },
+        "ask_price": 586.88,
+        "bid": {
+            "orders": 2,
+            "size": 120
+        },
+        "bid_price": 584.86
+    },
+    {
+        "ask": {
+            "orders": 8,
+            "size": 718
+        },
+        "ask_price": 586.89,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 584.85
+    },
+    {
+        "ask": {
+            "orders": 8,
+            "size": 615
+        },
+        "ask_price": 586.9,
+        "bid": {
+            "orders": 1,
+            "size": 98
+        },
+        "bid_price": 584.81
+    },
+    {
+        "ask": {
+            "orders": 3,
+            "size": 130
+        },
+        "ask_price": 586.91,
+        "bid": {
+            "orders": 1,
+            "size": 20
+        },
+        "bid_price": 584.8
+    },
+    {
+        "ask": {
+            "orders": 1,
+            "size": 100
+        },
+        "ask_price": 586.92,
+        "bid": {
+            "orders": 2,
+            "size": 120
+        },
+        "bid_price": 584.67
+    },
+    {
+        "ask": {
+            "orders": 0,
+            "size": 0
+        },
+        "ask_price": 586.93,
+        "bid": {
+            "orders": 1,
+            "size": 100
+        },
+        "bid_price": 584.6
+    }
+]

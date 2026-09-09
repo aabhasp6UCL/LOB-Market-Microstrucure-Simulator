@@ -8,6 +8,8 @@
 #include "Order.h"
 #include "Trade.h"
 #include "MarketEvents.h"
+#include "MatchingEngine.h"
+
 
 class OrderBook {
 public:
@@ -15,6 +17,8 @@ public:
     std::map<double, std::queue<Order>> ask;
 
     std::vector<Trade> trades;
+
+    MatchingEngine match;
 
 public:
     OrderBook() = default;
@@ -25,7 +29,6 @@ public:
     std::map<double, std::queue<Order>>& getAsk();
 
     void addOrder(Order order);
-    void cancelOrder(Order order);
     void processEvent(MarketEvent event);
     Order returnOrderBasedOnId(long ids);
     template <typename MapType>

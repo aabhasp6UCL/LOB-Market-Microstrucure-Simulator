@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -85,8 +86,7 @@ json askSize(std::map<double, std::queue<Order>, std::less<double>>& ask, double
     int orders = 0;
     auto iter = ask.find(ask_price);
     std::queue<Order> level = iter->second;
-    if (iter == ask.end())
-{
+    if (iter == ask.end()){
     j["size"] = 0;
     j["orders"] = 0;
     return j;
@@ -133,7 +133,7 @@ void parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& b
 }
 
 static void readMarketEvents() {
-    std::ifstream file("AAPL_2012-06-21_34200000_57600000_message_1.csv");
+    std::ifstream file("Order_book_file/AAPL_2012-06-21_34200000_57600000_message_1.csv");
     std::string line;
 
     int i = 0;
@@ -146,20 +146,24 @@ static void readMarketEvents() {
         int quantity = std::stoi(row[3]);
         double price = std::stod(row[4]) / 10000.0;
 
-        if (eventType != static_cast<EventType>(3) || eventType != static_cast<EventType>(1) ) {
+        if (eventType != static_cast<EventType>(3) && eventType != static_cast<EventType>(1) ) {
             continue;
         }
 
-        Side direction = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
-        Order order(orderId, price, quantity, direction, OrderType::LIMIT);
+        Side side = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
+        Order order(orderId, price, quantity, side, OrderType::LIMIT);
         parseOrder(order);
         MarketEvent event(eventType,timestamp,order);
         parseEvent(event);
-        ob.processEvent(event);
+
+        try {
+            ob.processEvent(event);
+        } catch (const std::exception&) {
+        }
         
         i++;
 
-        if (i == 1000){
+        if (i == 8000){
             break;
         }
     }

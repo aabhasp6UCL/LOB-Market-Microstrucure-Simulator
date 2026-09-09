@@ -10,6 +10,10 @@
 #include "../include/Order.h"
 #include "../include/MatchingEngine.h"
 
+// MarketEventSimulator.cpp declares "extern OrderBook ob;" but nothing ever
+// defined it, which caused "undefined reference to `ob'" at link time. This
+// is the one definition that satisfies that extern declaration.
+OrderBook ob;
 
 std::map<double, std::queue<Order>, std::greater<double>>& OrderBook::getBid() {
     return bid;
