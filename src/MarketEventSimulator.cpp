@@ -141,12 +141,6 @@ static void readMarketEvents() {
     std::string line;
     json simulation = json::array();
 
-    // app.js's playback window defaults to state.eventId = 9000, i.e. a
-    // 1000-event animation after the first 8000 are replayed to build the
-    // starting book. Without a stop point here, the loop tried to keep
-    // snapshotting all ~75,000 remaining events in the file, which is why
-    // it never finished (it got killed for using too much memory before
-    // Simulation.json was ever written).
     constexpr int SIMULATION_END = 9000;
 
     int i = 0;
@@ -162,7 +156,6 @@ static void readMarketEvents() {
         if (eventType != static_cast<EventType>(3) && eventType != static_cast<EventType>(1) ) {
             continue;
         }
-
 
         Side side = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
         Order order(orderId, price, quantity, side, OrderType::LIMIT);

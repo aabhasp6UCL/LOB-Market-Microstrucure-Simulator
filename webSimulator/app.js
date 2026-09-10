@@ -1,5 +1,6 @@
 const state={levels:14,playing:false,timer:null,speed:5,eventId:9000,lastPrice:null,mid:null,bestBid:null,bestAsk:null,bids:[],asks:[],trades:[],prices:[],eventType:"READY",simSeconds:0,buyVolume:0,sellVolume:0};
 let simulation=[];let currentEvent=0;
+let previousBidLevels=new Map();let previousAskLevels=new Map();let hasRenderedBookOnce=false;
 const $=id=>document.getElementById(id);
 function pad(n,d=2){return String(n).padStart(d,"0");}
 function formatTime(sec){const h=Math.floor(sec/3600);const m=Math.floor((sec%3600)/60);const s=sec%60;const si=Math.floor(s);const ms=Math.floor((s-si)*1000);return `${pad(h)}:${pad(m)}:${pad(si)}.${pad(ms,3)}`;}
@@ -43,39 +44,15 @@ function updateOrderBook(data){
         if(state.prices.length>110)state.prices.shift();
     }
 }
-function flashLevel(side,price,type="flash-trade"){
-    const rows=document.querySelectorAll(`.${side}-flash`);
-    rows.forEach(row=>{
-        if(Number(row.dataset.price)===Number(price)){
-            row.classList.remove("flash-add","flash-cancel","flash-trade");
-            void row.offsetWidth;
-            row.classList.add(type);
-            setTimeout(()=>row.classList.remove(type),650);
-        }
-    });
-}
-function flashExecutedLevels(previousBids,previousAsks){
-    previousBids.forEach(old=>{
-        const current=state.bids.find(x=>x.price===old.price);
-        if(current&&current.volume<old.volume)flashLevel("bid",old.price,"flash-trade");
-    });
-    previousAsks.forEach(old=>{
-        const current=state.asks.find(x=>x.price===old.price);
-        if(current&&current.volume<old.volume)flashLevel("ask",old.price,"flash-trade");
-    });
-}
 function processNextHistoricalEvent(){
     if(currentEvent>=simulation.length){stopSimulation();return false;}
     const event=simulation[currentEvent];
-    const previousBids=state.bids.map(x=>({...x}));
-    const previousAsks=state.asks.map(x=>({...x}));
     if(event.orderBook)updateOrderBook(event.orderBook);else updateOrderBook(event);
     if(event.eventId!==undefined)state.eventId=event.eventId;else state.eventId++;
     if(event.timestamp!==undefined)state.simSeconds=Number(event.timestamp);else state.simSeconds+=.001;
     state.eventType=event.type||"HISTORICAL";
     currentEvent++;
     renderState();
-    flashExecutedLevels(previousBids,previousAsks);
     return true;
 }
 function renderBook(){
@@ -84,35 +61,44 @@ function renderBook(){
     bidBook.innerHTML="";bidPriceBook.innerHTML="";askPriceBook.innerHTML="";askBook.innerHTML="";
     const bids=state.bids.slice(0,state.levels),asks=state.asks.slice(0,state.levels);
     const maxVolume=Math.max(...bids.map(x=>x.volume),...asks.map(x=>x.volume),1);
+    const flashClass=(prevLevels,price,volume)=>{
+        if(!hasRenderedBookOnce)return "";
+        const prevVolume=prevLevels.get(price);
+        if(prevVolume===undefined)return " flash-add";
+        if(volume>prevVolume)return " flash-add";
+        if(volume<prevVolume)return " flash-cancel";
+        return "";
+    };
     for(let i=0;i<state.levels;i++){
         const bid=bids[i],ask=asks[i];
+        const bidFlash=bid?flashClass(previousBidLevels,bid.price,bid.volume):"";
+        const askFlash=ask?flashClass(previousAskLevels,ask.price,ask.volume):"";
         const bidRow=document.createElement("div");
-        bidRow.className="book-row bid-flash";
+        bidRow.className="book-row"+bidFlash;
         if(bid){
             const width=bid.volume/maxVolume*100;
-            bidRow.dataset.price=bid.price;
             bidRow.innerHTML=`<div class="bar" style="width:${width}%"></div><span class="volume">${bid.volume}</span><span class="count">${bid.orders}</span>`;
         }
         bidBook.appendChild(bidRow);
         const bidPriceRow=document.createElement("div");
-        bidPriceRow.className="price-row bid-flash"+(bid&&i===0?" best-bid":"");
-        if(bid)bidPriceRow.dataset.price=bid.price;
+        bidPriceRow.className="price-row"+(bid&&i===0?" best-bid":"")+bidFlash;
         bidPriceRow.textContent=bid?fmt(bid.price):"";
         bidPriceBook.appendChild(bidPriceRow);
         const askRow=document.createElement("div");
-        askRow.className="book-row ask-flash";
+        askRow.className="book-row"+askFlash;
         if(ask){
             const width=ask.volume/maxVolume*100;
-            askRow.dataset.price=ask.price;
             askRow.innerHTML=`<span class="count">${ask.orders}</span><span class="volume">${ask.volume}</span><div class="bar" style="width:${width}%"></div>`;
         }
         askBook.appendChild(askRow);
         const askPriceRow=document.createElement("div");
-        askPriceRow.className="price-row ask-flash"+(ask&&i===0?" best-ask":"");
-        if(ask)askPriceRow.dataset.price=ask.price;
+        askPriceRow.className="price-row"+(ask&&i===0?" best-ask":"")+askFlash;
         askPriceRow.textContent=ask?fmt(ask.price):"";
         askPriceBook.appendChild(askPriceRow);
     }
+    previousBidLevels=new Map(state.bids.map(x=>[x.price,x.volume]));
+    previousAskLevels=new Map(state.asks.map(x=>[x.price,x.volume]));
+    hasRenderedBookOnce=true;
     const bid5=bids.slice(0,5).reduce((sum,x)=>sum+x.volume,0);
     const ask5=asks.slice(0,5).reduce((sum,x)=>sum+x.volume,0);
     const total=bid5+ask5;
@@ -224,7 +210,7 @@ function startSimulation(){
 function scheduleNextEvent(){
     if(!state.playing)return;
     if(currentEvent>=simulation.length){stopSimulation();return;}
-    const delay=Math.max(35,700/state.speed);
+    const delay=Math.max(200,2200/state.speed);
     state.timer=setTimeout(()=>{
         processNextHistoricalEvent();
         scheduleNextEvent();
@@ -251,6 +237,9 @@ function resetSimulation(){
     state.prices=[];
     state.buyVolume=0;
     state.sellVolume=0;
+    previousBidLevels=new Map();
+    previousAskLevels=new Map();
+    hasRenderedBookOnce=false;
     loadSimulation();
 }
 function previousEvent(){
@@ -262,7 +251,7 @@ if($("nextEvent"))$("nextEvent").addEventListener("click",processNextHistoricalE
 if($("previousEvent"))$("previousEvent").addEventListener("click",previousEvent);
 if($("playButton"))$("playButton").addEventListener("click",()=>{if(state.playing)stopSimulation();else startSimulation();});
 if($("resetButton"))$("resetButton").addEventListener("click",resetSimulation);
-if($("speedSlider"))$("speedSlider").addEventListener("input",event=>{state.speed=Number(event.target.value);});
+if($("speedSlider"))$("speedSlider").addEventListener("input",event=>{state.speed=Number(event.target.value);if($("speedValue"))$("speedValue").textContent=state.speed.toFixed(2)+"x";});
 if($("addOrderBtn"))$("addOrderBtn").addEventListener("click",()=>{const form=$("orderForm");if(form)form.style.display="block";});
 if($("closeOrderForm"))$("closeOrderForm").addEventListener("click",()=>{const form=$("orderForm");if(form)form.style.display="none";});
 if($("buyOrderBtn"))$("buyOrderBtn").addEventListener("click",()=>setOrderFormSide("BUY"));
