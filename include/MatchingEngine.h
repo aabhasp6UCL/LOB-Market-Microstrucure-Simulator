@@ -6,6 +6,8 @@
 #include <vector>
 #include "Order.h"
 #include "Trade.h"
+#include "OrderBook.h"
+
 
 class MatchingEngine {
 
@@ -33,13 +35,13 @@ public:
             if (!type.empty()){
                 if (order.type == OrderType::LIMIT ){
                     if (side == Side::BUY && opp_type.begin()->first > price_){
-                        // new_order = Order(id,OrderType::LIMIT,Side::BUY,price_,remaining);
-                        // ob.addOrder(new_order);
+                        //Order new_order = Order(id,OrderType::LIMIT,Side::BUY,price_,remaining);
+                        //ob.addOrder(new_order);
                         break;
                     }
                     if (side == Side::SELL && opp_type.begin()->first < price_ ){
-                        // new_order = Order(id,OrderType::LIMIT,Side::SELL,price_,remaining);
-                        // ob.addOrder(new_order);
+                        //Order new_order = Order(id,OrderType::LIMIT,Side::SELL,price_,remaining);
+                        //ob.addOrder(new_order);
                         break;
                     }
                 }

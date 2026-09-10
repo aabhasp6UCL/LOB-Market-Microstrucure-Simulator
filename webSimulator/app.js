@@ -40,9 +40,13 @@ function updateOrderBook(data){
     state.bestAsk=state.asks.length?state.asks[0].price:null;
     if(state.bestBid!==null&&state.bestAsk!==null){
         state.mid=(state.bestBid+state.bestAsk)/2;
-        state.prices.push(state.mid);
-        if(state.prices.length>110)state.prices.shift();
+        pushPrice(state.mid);
     }
+}
+const MAX_CHART_POINTS=5000;
+function pushPrice(mid){
+    state.prices.push(mid);
+    if(state.prices.length>MAX_CHART_POINTS)state.prices.shift();
 }
 function processNextHistoricalEvent(){
     if(currentEvent>=simulation.length){stopSimulation();return false;}
@@ -133,26 +137,72 @@ function renderTape(){
 }
 function renderChart(){
     const canvas=$("priceChart");
-    if(!canvas||state.prices.length===0)return;
+    if(!canvas)return;
+    const cssWidth=canvas.clientWidth,cssHeight=canvas.clientHeight;
+    if(cssWidth===0||cssHeight===0)return;
+    const dpr=window.devicePixelRatio||1;
+    canvas.width=cssWidth*dpr;
+    canvas.height=cssHeight*dpr;
     const ctx=canvas.getContext("2d");
-    const width=canvas.width=canvas.clientWidth;
-    const height=canvas.height=canvas.clientHeight;
-    ctx.clearRect(0,0,width,height);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,cssWidth,cssHeight);
     const prices=state.prices;
-    if(prices.length<2)return;
-    const min=Math.min(...prices),max=Math.max(...prices),range=max-min||1;
+    if(prices.length===0){
+        if($("chartLow"))$("chartLow").textContent="LOW --";
+        if($("chartHigh"))$("chartHigh").textContent="HIGH --";
+        if($("chartChange"))$("chartChange").textContent="--";
+        if($("yLabels"))$("yLabels").innerHTML="";
+        return;
+    }
+    const min=Math.min(...prices),max=Math.max(...prices);
+    const range=(max-min)||Math.max(min*0.0005,0.01);
+    const padTop=10,padBottom=10;
+    const plotHeight=cssHeight-padTop-padBottom;
+    const pointX=index=>prices.length>1?index/(prices.length-1)*cssWidth:cssWidth/2;
+    const pointY=price=>padTop+plotHeight-(price-min)/range*plotHeight;
+    const rising=prices[prices.length-1]>=prices[0];
+    const lineColor=rising?"#38d996":"#ff5f6d";
+    if(prices.length>1){
+        const gradient=ctx.createLinearGradient(0,0,0,cssHeight);
+        gradient.addColorStop(0,rising?"rgba(56,217,150,.28)":"rgba(255,95,109,.24)");
+        gradient.addColorStop(1,rising?"rgba(56,217,150,0)":"rgba(255,95,109,0)");
+        ctx.beginPath();
+        prices.forEach((price,index)=>{
+            const x=pointX(index),y=pointY(price);
+            if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        });
+        ctx.lineTo(cssWidth,cssHeight);
+        ctx.lineTo(0,cssHeight);
+        ctx.closePath();
+        ctx.fillStyle=gradient;
+        ctx.fill();
+        ctx.beginPath();
+        prices.forEach((price,index)=>{
+            const x=pointX(index),y=pointY(price);
+            if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+        });
+        ctx.strokeStyle=lineColor;
+        ctx.lineWidth=1.75;
+        ctx.lineJoin="round";
+        ctx.lineCap="round";
+        ctx.stroke();
+    }
+    const lastX=pointX(prices.length-1),lastY=pointY(prices[prices.length-1]);
     ctx.beginPath();
-    prices.forEach((price,index)=>{
-        const x=index/(prices.length-1)*width;
-        const y=height-(price-min)/range*height;
-        if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-    if($("chartLow"))$("chartLow").textContent=fmt(min);
-    if($("chartHigh"))$("chartHigh").textContent=fmt(max);
+    ctx.arc(lastX,lastY,3.2,0,Math.PI*2);
+    ctx.fillStyle=lineColor;
+    ctx.fill();
+    if($("chartLow"))$("chartLow").textContent="LOW "+fmt(min);
+    if($("chartHigh"))$("chartHigh").textContent="HIGH "+fmt(max);
     if($("chartChange")){
         const change=prices.length>1?prices[prices.length-1]-prices[0]:0;
-        $("chartChange").textContent=fmt(change);
+        const sign=change>0?"+":"";
+        $("chartChange").textContent=sign+fmt(change);
+        $("chartChange").style.color=change>0?"var(--green-bright)":change<0?"var(--red-bright)":"var(--muted)";
+    }
+    if($("yLabels")){
+        const mid=(max+min)/2;
+        $("yLabels").innerHTML=`<span>${fmt(max)}</span><span>${fmt(mid)}</span><span>${fmt(min)}</span>`;
     }
 }
 function renderState(){
@@ -196,7 +246,7 @@ function addUserOrder(){
     state.eventId++;state.eventType="USER_LIMIT_ADD";
     if(state.bestBid!==null&&state.bestAsk!==null){
         state.mid=(state.bestBid+state.bestAsk)/2;
-        state.prices.push(state.mid);
+        pushPrice(state.mid);
     }
     renderState();
     if($("orderMessage"))$("orderMessage").textContent=`${side} order added successfully.`;
