@@ -23,7 +23,6 @@ This document leans heavily into how the **order book engine itself** actually w
   - [Step 1 — Generate the simulation data (C++ engine)](#step-1--generate-the-simulation-data-c-engine)
   - [Step 2 — Launch the web terminal](#step-2--launch-the-web-terminal)
 - [Output File Reference](#output-file-reference)
-- [Known Limitations](#known-limitations)
 - [Roadmap](#roadmap)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
@@ -253,19 +252,6 @@ Once loaded: **▶ Play/Pause** and **◀ Previous / Next ▶** step through the
     { "bid_price": 586.28, "bid": {"size": 200, "orders": 2}, "ask_price": 586.30, "ask": {"size": 3, "orders": 1} }
   ]
 }
-```
-
-## Known Limitations
-
-- **The matching engine's limit-price guard reads from the wrong map** (`opp_type` instead of `type`), letting crossing limit orders trade through their own limit price — see [Verified Matching Behaviors](#verified-matching-behaviors) for a reproduced example.
-- **Unfilled remainders of a crossing limit order are silently dropped rather than rested** — also reproduced above; the fix was scaffolded in as commented-out code but never wired up.
-- **Order cancellation is O(N)** — `returnOrderBasedOnId` linearly scans every resting order on both sides of the book; see [Performance Characteristics](#performance-characteristics).
-- **`src/LOB_Metrics.cpp` and `include/snapshot.h` are currently commented out.** Every market metric shown in the terminal (mid-price, spread, VWAP, imbalance) is computed client-side in `app.js` from the raw depth snapshots, not by the engine.
-- **`src/Order.cpp` and `src/Trade.cpp` currently declare local, unused duplicate types** rather than implementations of `include/Order.h` / `include/Trade.h` — they compile but contribute nothing to the running program.
-- **The replay window is a fixed 1,000-event slice** (rows 8,001–9,000 of the trading day), not the full session.
-- **The "Add Order" feature in the web terminal is a client-side visual simulation only** — it never reaches the C++ engine.
-- **No automated tests** currently cover the matching engine or book invariants — the reproductions above were done ad hoc, not via a test suite.
-- **No license file** is currently included in the repository (see [License](#license)).
 
 ## Roadmap
 
