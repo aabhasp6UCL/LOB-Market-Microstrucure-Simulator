@@ -13,8 +13,6 @@ This document leans heavily into how the **order book engine itself** actually w
   - [Adding an Order](#adding-an-order)
   - [The Matching Algorithm](#the-matching-algorithm)
   - [Verified Matching Behaviors](#verified-matching-behaviors)
-  - [Cancelling an Order](#cancelling-an-order)
-  - [Market Event Replay](#market-event-replay)
   - [Performance Characteristics](#performance-characteristics)
 - [The Web Terminal](#the-web-terminal)
 - [Repository Structure](#repository-structure)
@@ -104,10 +102,6 @@ while (remaining != 0 && !type.empty()){
 
 `type` is the side actually being executed against (asks, for an incoming buy); `opp_type` is the *same* side as the incoming order (bids, for an incoming buy) — passed in only so a partial fill could theoretically be re-inserted as a new resting order afterward.
 
-### Verified Matching Behaviors
-
-Reading the loop above raises a question: the natural "stop matching" condition for a limit order is *"the best remaining opposite-side price has moved past my own limit price"* — which means checking `type.begin()->first` (the ask book being consumed) against `price_`. Instead, the code checks `opp_type.begin()->first` — the incoming order's *own* side of the book. I didn't want to just flag this as suspicious from a read-through, so I built two minimal, isolated reproductions directly against the compiled engine (a bare `OrderBook` + a handful of `addOrder` calls, no CSV, no web terminal) to see what actually happens:
-
 **1. A limit order can trade through its own limit price.**
 
 Resting asks at `100.00`, `100.05`, `100.10` (50 shares each), plus a resting bid at `99.50` so the same-side book isn't empty. Send a `BUY LIMIT` for 120 shares at a limit of `100.05`:
@@ -136,19 +130,6 @@ The root cause is visible directly in the code: `MatchOrder` takes `Order& order
 — show this was the intended fix and was scaffolded in, but never wired up.
 
 Neither of these requires an adversarial setup — both reproduce from a handful of plain `addOrder` calls, and both are one-line-per-branch fixes (compare against `type` instead of `opp_type`; construct and re-add a resting order from any nonzero `remaining` once the loop exits). They're listed first in the [Roadmap](#roadmap) for that reason.
-
-### Cancelling an Order
-
-`OrderBook::cancelOrder` is a two-step process: `returnOrderBasedOnId` does a **linear scan** through every queue on both sides of the book to find the order and determine which side to remove it from, and `remove<MapType>` then rebuilds that price level's queue, filtering out the cancelled ID while preserving the relative order of everything else — which is what keeps time priority intact for the orders that remain. See [Performance Characteristics](#performance-characteristics) for what this costs at scale.
-
-### Market Event Replay
-
-`src/MarketEventSimulator.cpp` drives the book from the LOBSTER CSV rather than from synthetic orders:
-
-- Only **event type `1` (new order)** and **event type `3` (full cancellation)** rows are fed into the book; partial cancellations (`2`) and LOBSTER's own execution messages (`4`–`7`) are skipped on read. Every order constructed from the file is a `LIMIT` order — market orders never appear in historical replay, only in code that calls `addOrder` directly.
-- Cancellations for order IDs the engine never saw (e.g. because replay starts partway through the trading day) throw inside `OrderBook::cancelOrder`; the replay loop catches and silently discards these, rather than aborting the whole run.
-- The first **8,000** qualifying rows are replayed purely to build up a realistic resting book (a "warm-up" period) — that state is captured once, as `webSimulator/OrderBook.json`. Rows **8,001–9,000** are then replayed one at a time, with a full book snapshot written after each, forming the 1,000-event sequence in `webSimulator/Simulation.json`.
-- Each snapshot serializes only the **top 20 price levels per side** (`MAX_LEVELS` in `parseOrderBook`) — since the web terminal only ever displays 14, serializing the full depth of the book on every one of 1,000 snapshots was pure wasted work.
 
 ### Performance Characteristics
 
