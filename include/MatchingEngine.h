@@ -6,7 +6,6 @@
 #include <vector>
 #include "Order.h"
 #include "Trade.h"
-#include "OrderBook.h"
 
 
 class MatchingEngine {

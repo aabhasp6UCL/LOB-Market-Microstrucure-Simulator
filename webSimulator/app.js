@@ -1,4 +1,4 @@
-const state={levels:14,playing:false,timer:null,speed:5,eventId:9000,lastPrice:null,mid:null,bestBid:null,bestAsk:null,bids:[],asks:[],trades:[],prices:[],eventType:"READY",simSeconds:0,buyVolume:0,sellVolume:0};
+const state={levels:14,playing:false,timer:null,speed:5,eventId:9000,lastPrice:null,mid:null,bestBid:null,bestAsk:null,bids:[],asks:[],prices:[],eventType:"READY",simSeconds:0,buyVolume:0,sellVolume:0};
 let simulation=[];let currentEvent=0;
 let previousBidLevels=new Map();let previousAskLevels=new Map();let hasRenderedBookOnce=false;
 const $=id=>document.getElementById(id);
@@ -124,17 +124,6 @@ function renderBook(){
     if($("bidDepth"))$("bidDepth").textContent=bid5;
     if($("askDepth"))$("askDepth").textContent=ask5;
 }
-function renderTape(){
-    const tapeBody=$("tapeBody");
-    if(!tapeBody)return;
-    tapeBody.innerHTML="";
-    state.trades.slice().reverse().forEach(trade=>{
-        const row=document.createElement("tr");
-        row.innerHTML=`<td>${trade.time??"--"}</td><td>${fmt(trade.price)}</td><td>${trade.quantity}</td>`;
-        tapeBody.appendChild(row);
-    });
-    if($("lastTradeSize")&&state.trades.length>0)$("lastTradeSize").textContent=state.trades[state.trades.length-1].quantity;
-}
 function renderChart(){
     const canvas=$("priceChart");
     if(!canvas)return;
@@ -211,7 +200,6 @@ function renderState(){
     if($("simTime"))$("simTime").textContent=formatTime(state.simSeconds);
     if($("footerTime"))$("footerTime").textContent=formatTime(state.simSeconds);
     renderBook();
-    renderTape();
     renderChart();
 }
 function setOrderFormSide(side){
@@ -283,7 +271,6 @@ function resetSimulation(){
     state.bestAsk=null;
     state.bids=[];
     state.asks=[];
-    state.trades=[];
     state.prices=[];
     state.buyVolume=0;
     state.sellVolume=0;
