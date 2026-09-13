@@ -22,7 +22,6 @@ This document leans heavily into how the **order book engine itself** actually w
 - [Running the Simulator](#running-the-simulator)
   - [Step 1 — Generate the simulation data (C++ engine)](#step-1--generate-the-simulation-data-c-engine)
   - [Step 2 — Launch the web terminal](#step-2--launch-the-web-terminal)
-- [Output File Reference](#output-file-reference)
 - [Roadmap](#roadmap)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
@@ -238,36 +237,3 @@ Then open **`http://localhost:8000`** in a browser. Any other static file server
 
 Once loaded: **▶ Play/Pause** and **◀ Previous / Next ▶** step through the replay, **Reset** reloads it from the top, the **speed slider** runs 0.25×–10×, and **+ Add Order** drops a hypothetical limit order into the visible book (validated so it can't be placed crossing the spread).
 
-## Output File Reference
-
-**`webSimulator/OrderBook.json`** — a flat array of up to 20 `{ bid_price, bid: {size, orders}, ask_price, ask: {size, orders} }` rows, the book state at the end of the warm-up period. Currently generated but not read by `app.js`.
-
-**`webSimulator/Simulation.json`** — an array of 1,000 objects:
-
-```json
-{
-  "eventId": 8001,
-  "timestamp": 34215.918273451,
-  "orderBook": [
-    { "bid_price": 586.28, "bid": {"size": 200, "orders": 2}, "ask_price": 586.30, "ask": {"size": 3, "orders": 1} }
-  ]
-}
-
-## Roadmap
-
-- Fix the limit-price guard in `MatchingEngine::MatchOrder` to check `type.begin()->first` instead of `opp_type.begin()->first` on both the BUY and SELL branches
-- Rest the unfilled remainder of a partially-filled crossing limit order instead of discarding it (wire up the commented-out re-insertion logic)
-- Replace `returnOrderBasedOnId`'s linear scan with an order-ID index (`unordered_map<long, {side, price}>`) to bring cancellation down to O(log L)
-- Add a unit test suite around the matching engine specifically — price-time priority under ties, partial fills, empty-book edge cases, and regression tests for the two issues above
-- Compute microstructure metrics on the C++ side (reviving `LOB_Metrics.cpp`) rather than in the browser
-- Extend the replay window to the full trading session, with pagination/streaming rather than one large JSON file
-- Add a CMake build so the project doesn't depend on a hand-written `g++` invocation
-
-## License
-
-No license has been specified yet. All rights reserved by the author until a license is added.
-
-## Acknowledgements
-
-- Order-level market data format from [LOBSTER](https://lobsterdata.com/), Humboldt-Universität zu Berlin.
-- JSON serialization via [nlohmann/json](https://github.com/nlohmann/json).
