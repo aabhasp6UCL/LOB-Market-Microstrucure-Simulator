@@ -4,28 +4,6 @@ A C++ limit order book (LOB) and matching engine that reconstructs real market m
 
 This document leans heavily into how the **order book engine itself** actually works internally: its data structures, its order-matching algorithm, its complexity characteristics, and — because understanding a matching engine means understanding what it actually does, not just what it's supposed to do — two concrete, reproduced behaviors in the current matching logic that anyone building on this code should know about.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [The Order Book Engine](#the-order-book-engine)
-  - [Data Structures](#data-structures)
-  - [Adding an Order](#adding-an-order)
-  - [The Matching Algorithm](#the-matching-algorithm)
-  - [Verified Matching Behaviors](#verified-matching-behaviors)
-  - [Performance Characteristics](#performance-characteristics)
-- [The Web Terminal](#the-web-terminal)
-- [Repository Structure](#repository-structure)
-- [Data Format](#data-format)
-- [Requirements](#requirements)
-- [Building From Source](#building-from-source)
-- [Running the Simulator](#running-the-simulator)
-  - [Step 1 — Generate the simulation data (C++ engine)](#step-1--generate-the-simulation-data-c-engine)
-  - [Step 2 — Launch the web terminal](#step-2--launch-the-web-terminal)
-- [Roadmap](#roadmap)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
 ## Overview
 
 Rather than working from aggregated OHLC bars, this project reconstructs a limit order book from real, order-level historical data: every new order and every cancellation is fed through an actual matching engine, so the book state at any point in time is *derived*, not approximated.
