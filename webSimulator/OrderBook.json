@@ -42,8 +42,8 @@
         },
         "ask_price": 586.33,
         "bid": {
-            "orders": 1,
-            "size": 100
+            "orders": 0,
+            "size": 0
         },
         "bid_price": 586.25
     },
@@ -90,8 +90,8 @@
         },
         "ask_price": 586.37,
         "bid": {
-            "orders": 2,
-            "size": 102
+            "orders": 0,
+            "size": 0
         },
         "bid_price": 586.21
     },
@@ -102,8 +102,8 @@
         },
         "ask_price": 586.38,
         "bid": {
-            "orders": 3,
-            "size": 136
+            "orders": 1,
+            "size": 18
         },
         "bid_price": 586.2
     },
@@ -181,8 +181,8 @@
     },
     {
         "ask": {
-            "orders": 15,
-            "size": 1603
+            "orders": 13,
+            "size": 1403
         },
         "ask_price": 586.45,
         "bid": {
@@ -229,8 +229,8 @@
     },
     {
         "ask": {
-            "orders": 15,
-            "size": 1328
+            "orders": 14,
+            "size": 1310
         },
         "ask_price": 586.49,
         "bid": {

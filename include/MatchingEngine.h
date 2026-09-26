@@ -2,7 +2,7 @@
 #define MATCHING_ENGINE_H
 
 #include <map>
-#include <queue>
+#include <deque>
 #include <vector>
 #include "Order.h"
 #include "Trade.h"
@@ -15,7 +15,7 @@ public:
     MatchingEngine() = default;
 
     template <typename Compare,typename Compare1>
-    void MatchOrder(Order& order, std::map<double, std::queue<Order>, Compare>& type, std::map<double, std::queue<Order>, Compare1>& opp_type){
+    void MatchOrder(Order& order, std::map<double, std::deque<Order>, Compare>& type, std::map<double, std::deque<Order>, Compare1>& opp_type){
 
         std::vector<Trade> store_trades;
         
@@ -46,24 +46,24 @@ public:
                 }
             }
 
-            std::queue<Order>& queue = type.begin()->second;
+            std::deque<Order>& deque = type.begin()->second;
 
             Trade trade;
             if (side == Side::BUY){
-                trade = Trade(queue.front().price,id,queue.front().id,queue.front().quantity);    
+                trade = Trade(deque.front().price,id,deque.front().id,deque.front().quantity);    
             }
             else{
-                trade = Trade(queue.front().price,queue.front().id,id,queue.front().quantity);
+                trade = Trade(deque.front().price,deque.front().id,id,deque.front().quantity);
             }
 
-            if (remaining >= queue.front().quantity){
-                remaining -= queue.front().quantity;
-                queue.pop();
+            if (remaining >= deque.front().quantity){
+                remaining -= deque.front().quantity;
+                deque.pop_front();
                 store_trades.push_back(trade);
             }
             else{
                 store_trades.push_back(trade);
-                queue.front().quantity -= remaining;
+                deque.front().quantity -= remaining;
                 remaining = 0;
                 break;
             }

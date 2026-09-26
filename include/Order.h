@@ -13,10 +13,10 @@ enum class OrderType {
 
 struct Order {
     long id;
+    OrderType type;
+    Side side;
     double price;
     int quantity;
-    Side side;
-    OrderType type;
 };
 
 #endif

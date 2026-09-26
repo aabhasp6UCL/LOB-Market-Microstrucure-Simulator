@@ -1,5 +1,5 @@
 #include <iostream>
-#include <queue>
+#include <deque>
 #include <map>
 #include <string>
 #include <stdexcept>
@@ -10,24 +10,22 @@
 #include "../include/Order.h"
 #include "../include/MatchingEngine.h"
 
-// MarketEventSimulator.cpp declares "extern OrderBook ob;" but nothing ever
-// defined it, which caused "undefined reference to `ob'" at link time. This
-// is the one definition that satisfies that extern declaration.
+
 OrderBook ob;
 
-std::map<double, std::queue<Order>, std::greater<double>>& OrderBook::getBid() {
+std::map<double, std::deque<Order>, std::greater<double>>& OrderBook::getBid() {
     return bid;
 }
 
 MatchingEngine match;
 
-std::map<double, std::queue<Order>>&OrderBook::getAsk() {
+std::map<double, std::deque<Order>>&OrderBook::getAsk() {
     return ask;
 }
 
 OrderBook::OrderBook(
-    std::map<double, std::queue<Order>, std::greater<double>> bid,
-    std::map<double, std::queue<Order>> ask
+    std::map<double, std::deque<Order>, std::greater<double>> bid,
+    std::map<double, std::deque<Order>> ask
 ) {
     this->bid = bid;
     this->ask = ask;
@@ -45,12 +43,12 @@ void OrderBook::addOrder(Order order) {
             }
             else {
                 if (bid.count(price_) > 0) {
-                    bid[price_].push(order);
+                    bid[price_].push_back(order);
                 }
                 else {
-                    std::queue<Order> new_queue;
-                    new_queue.push(order);
-                    bid[price_] = new_queue;
+                    std::deque<Order> new_deque;
+                    new_deque.push_back(order);
+                    bid[price_] = new_deque;
                 }
             }
         }
@@ -60,12 +58,12 @@ void OrderBook::addOrder(Order order) {
             }
             else {
                 if (ask.count(price_) > 0) {
-                    ask[price_].push(order);
+                    ask[price_].push_back(order);
                 }
                 else {
-                    std::queue<Order> new_queue;
-                    new_queue.push(order);
-                    ask[price_] = new_queue;
+                    std::deque<Order> new_deque;
+                    new_deque.push_back(order);
+                    ask[price_] = new_deque;
                 }
             }
         }
@@ -81,27 +79,31 @@ void OrderBook::addOrder(Order order) {
 }
 
 
-Order OrderBook::returnOrderBasedOnId(long ids) {
+Order& OrderBook::returnOrderBasedOnId(long ids) {
 
-    for (const auto& pair : bid) {
-        std::queue<Order> hold = pair.second;
-        while (!hold.empty()) {
-            Order item = hold.front();
-            if (item.id == ids) {
+    for (auto& pair : bid) {
+        std::deque<Order>& hold = pair.second;
+        auto iter = hold.begin();
+        while (iter != hold.end()) {
+            Order& item = *iter;
+            long check = item.id;
+            if (check == ids) {
                 return item;
             }
-            hold.pop();
+            iter++;
         }
     }
 
-    for (const auto& pair : ask) {
-        std::queue<Order> hold = pair.second;
-        while (!hold.empty()) {
-            Order item = hold.front();
-            if (item.id == ids) {
+    for (auto& pair : ask) {
+        std::deque<Order>& hold = pair.second;
+        auto iter = hold.begin();
+        while (iter != hold.end()) {
+            Order& item = *iter;
+            long check = item.id;
+            if (check == ids) {
                 return item;
             }
-            hold.pop();
+            iter++;
         }
     }
 
@@ -111,10 +113,10 @@ Order OrderBook::returnOrderBasedOnId(long ids) {
 
 template <typename MapType>
 void OrderBook::remove(MapType& type,double price,long ids) {
-    std::queue<Order> removed;
+    std::deque<Order> removed;
     while (!type[price].empty()) {
         if (type[price].front().id != ids) {
-            removed.push(type[price].front());
+            removed.push_back(type[price].front());
         }
         type[price].pop();
     }
@@ -134,6 +136,20 @@ void OrderBook::cancelOrder(long ids) {
     }
 }
 
+void OrderBook::editOrder(long ids, double newPrice, int newQuant){
+    Order ord = returnOrderBasedOnId(ids);
+    Order newOrder = Order(ids,OrderType::LIMIT,ord.side,newPrice,newQuant);
+    cancelOrder(ids);
+    addOrder(newOrder);
+}
+
+void OrderBook::partialCancellation(long ids, int newQuant){
+
+    Order& ord = returnOrderBasedOnId(ids);
+    ord.quantity = newQuant;
+
+}
+
 void OrderBook::processEvent(MarketEvent event) {
 
     if (event.type == EventType::NEW_ORDER) {
@@ -142,4 +158,7 @@ void OrderBook::processEvent(MarketEvent event) {
     else if (event.type == EventType::CANCEL_ORDER) {
         cancelOrder(event.order.id);
     }
+    else if (event.type == EventType::MODIFY_ORDER) {
+        partialCancellation(event.order.id,event.order.quantity);
+    } 
 }

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <deque>
 #include <stdexcept>
 #include <nlohmann/json.hpp>
 
@@ -55,15 +56,18 @@ json parseEvent(MarketEvent event){
     else if (event.type == EventType::CANCEL_ORDER) {
         j["type"] = "CANCEL_ORDER";
     }
+    else if (event.type == EventType::MODIFY_ORDER) {
+        j["type"] = "MODIFY_ORDER";
+    } 
     return j; 
 }
 
-json bidSize(std::map<double, std::queue<Order>, std::greater<double>>&bid, double bid_price){
+json bidSize(std::map<double, std::deque<Order>, std::greater<double>>&bid, double bid_price){
     json j;
     int bidVolume = 0;
     int orders = 0;
     auto iter = bid.find(bid_price);
-    std::queue<Order> level = iter->second;
+    std::deque<Order> level = iter->second;
     if (iter == bid.end())
 {
     j["size"] = 0;
@@ -72,7 +76,7 @@ json bidSize(std::map<double, std::queue<Order>, std::greater<double>>&bid, doub
 }
     while (!level.empty()) {
         bidVolume += level.front().quantity;
-        level.pop();
+        level.pop_front();
         orders++;
     }
     j["size"] = bidVolume;
@@ -80,12 +84,12 @@ json bidSize(std::map<double, std::queue<Order>, std::greater<double>>&bid, doub
     return j;
 }
 
-json askSize(std::map<double, std::queue<Order>, std::less<double>>& ask, double ask_price){
+json askSize(std::map<double, std::deque<Order>, std::less<double>>& ask, double ask_price){
     json j;
     int askVolume = 0;
     int orders = 0;
     auto iter = ask.find(ask_price);
-    std::queue<Order> level = iter->second;
+    std::deque<Order> level = iter->second;
     if (iter == ask.end()){
     j["size"] = 0;
     j["orders"] = 0;
@@ -93,7 +97,7 @@ json askSize(std::map<double, std::queue<Order>, std::less<double>>& ask, double
 }
     while (!level.empty()) {
         askVolume += level.front().quantity;
-        level.pop();
+        level.pop_front();
         orders++;
     }
     j["size"] = askVolume;
@@ -101,8 +105,8 @@ json askSize(std::map<double, std::queue<Order>, std::less<double>>& ask, double
     return j;
 }
 
-json parseRow(std::map<double, std::queue<Order>, std::greater<double>>& bid,
-        std::map<double, std::queue<Order>, std::less<double>>& ask, double bid_price, double ask_price){
+json parseRow(std::map<double, std::deque<Order>, std::greater<double>>& bid,
+        std::map<double, std::deque<Order>, std::less<double>>& ask, double bid_price, double ask_price){
             
             json j;
             j["bid"] = bidSize(bid,bid_price);
@@ -112,12 +116,9 @@ json parseRow(std::map<double, std::queue<Order>, std::greater<double>>& bid,
             return j;
 } 
 
-json parseOrderBook(std::map<double, std::queue<Order>, std::greater<double>>& bid,
-        std::map<double, std::queue<Order>, std::less<double>>& ask){
+json parseOrderBook(std::map<double, std::deque<Order>, std::greater<double>>& bid,
+        std::map<double, std::deque<Order>, std::less<double>>& ask){
 
-    // app.js only ever renders the top state.levels (14) rows per side, so
-    // walking/serializing the full book depth here was pure wasted work and
-    // wasted memory -- it's what made every snapshot far bigger than needed.
     constexpr int MAX_LEVELS = 20;
 
     json OrderBook = json::array();
@@ -147,18 +148,19 @@ static void readMarketEvents() {
     while (std::getline(file, line)) {
 
         std::vector<std::string> row = split(line, ',');
+
         double timestamp = std::stod(row[0]);
         EventType eventType = static_cast<EventType>(std::stoi(row[1]));
         long orderId = std::stol(row[2]);
         int quantity = std::stoi(row[3]);
         double price = std::stod(row[4]) / 10000.0;
 
-        if (eventType != static_cast<EventType>(3) && eventType != static_cast<EventType>(1) ) {
+        if (eventType != static_cast<EventType>(3) && eventType != static_cast<EventType>(2) && eventType != static_cast<EventType>(1) ) {
             continue;
         }
 
         Side side = (std::stoi(row[5]) == 1) ? Side::BUY : Side::SELL;
-        Order order(orderId, price, quantity, side, OrderType::LIMIT);
+        Order order(orderId,OrderType::LIMIT,side,price,quantity);
         parseOrder(order);
         MarketEvent event(eventType,timestamp,order);
         parseEvent(event);
