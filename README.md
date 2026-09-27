@@ -35,25 +35,25 @@ Everything above the JSON files is the engine; everything below is presentation.
 
 ### Data Structures
 
-The book (`include/OrderBook.h`) is two ordered maps of FIFO queues:
+The book (`include/OrderBook.h`) is two ordered maps of FIFO deques:
 
 ```cpp
-std::map<double, std::queue<Order>, std::greater<double>> bid;  // descending: bid.begin() is the best (highest) bid
-std::map<double, std::queue<Order>>                       ask;  // ascending:  ask.begin() is the best (lowest) ask
+std::map<double, std::deque<Order>, std::greater<double>> bid;  // descending: bid.begin() is the best (highest) bid
+std::map<double, std::deque<Order>>                       ask;  // ascending:  ask.begin() is the best (lowest) ask
 ```
 
 This is the standard shape for a price-time-priority book:
 
 - The **map** orders price levels so the best price on each side is always `.begin()` — an O(log L) lookup/insert/erase per price level, where L is the number of distinct price levels currently resting.
-- Each price level is a **queue**, so orders at the same price are matched in strict arrival order (FIFO) — `push()` on arrival, `front()`/`pop()` on execution, which is what actually enforces *time* priority within a price level.
+- Each price level is a **deque**, so orders at the same price are matched in strict arrival order (FIFO) — `push()` on arrival, `front()`/`pop_front()` on execution, which is what actually enforces *time* priority within a price level.
 
-A resting `Order` (`include/Order.h`) is a plain struct — `id`, `price`, `quantity`, `side` (`BUY`/`SELL`), `type` (`LIMIT`/`MARKET`) — with no timestamp field of its own; arrival order is implicit in queue position, not stored explicitly.
+A resting `Order` (`include/Order.h`) is a plain struct — `id`, `price`, `quantity`, `side` (`BUY`/`SELL`), `type` (`LIMIT`/`MARKET`) — with no timestamp field of its own; arrival order is implicit in deque position, not stored explicitly.
 
 ### Adding an Order
 
 `OrderBook::addOrder` (`src/OrderBook.cpp`) is the entry point for a new order, and it branches on whether the order is immediately marketable:
 
-- **Limit order, non-crossing** (e.g. a buy priced below the best ask): appended to the back of the queue at its price level — creating a new level in the map if none exists yet at that price, or pushing onto the existing queue if one does. This is the only path that actually rests new liquidity on the book.
+- **Limit order, non-crossing** (e.g. a buy priced below the best ask): appended to the back of the deque at its price level — creating a new level in the map if none exists yet at that price, or pushing onto the existing deque if one does. This is the only path that actually rests new liquidity on the book.
 - **Limit order, crossing** (its price reaches into the opposite book — a buy priced at or above the best ask, or a sell priced at or below the best bid): handed to the `MatchingEngine` to execute against the opposite side instead of resting.
 - **Market order**: always handed to the `MatchingEngine` unconditionally, since a market order has no price to check against.
 
@@ -61,9 +61,9 @@ A resting `Order` (`include/Order.h`) is a plain struct — `id`, `price`, `quan
 
 `MatchingEngine::MatchOrder` (`include/MatchingEngine.h`) is a templated method — templated on the two map comparators (`std::greater<double>` for bid, the default `std::less<double>` for ask) — so the same function body handles both a buy walking the ask side and a sell walking the bid side. On each iteration it:
 
-1. Erases and skips any price level whose queue has been emptied out.
+1. Erases and skips any price level whose deque has been emptied out.
 2. For a **limit** order, checks whether it should stop matching (see below).
-3. Trades against the order at the front of the best remaining price level — a full fill pops that order off the queue, a partial fill decrements its quantity in place and stops.
+3. Trades against the order at the front of the best remaining price level — a full fill pops that order off the deque, a partial fill decrements its quantity in place and stops.
 
 ```cpp
 while (remaining != 0 && !type.empty()){
