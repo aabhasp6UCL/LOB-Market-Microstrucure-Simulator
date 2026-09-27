@@ -37,18 +37,18 @@ std::pair<double, double> metrics:: getVolume(const OrderBook& orderBook){
     double askVolume = 0;
 
     for (const auto& [price, orders] : ob.getBid()) {
-        std::queue<Order> queue = orders;
-        while (!queue.empty()) {
-            bidVolume += queue.front().quantity;
-            queue.pop();
+        std::deque<Order> deque = orders;
+        while (!deque.empty()) {
+            bidVolume += deque.front().quantity;
+            deque.pop_front();
         }
     }
 
     for (const auto& [price, orders] : ob.getAsk()) {
-        std::queue<Order> queue = orders;
-        while (!queue.empty()) {
-            askVolume += queue.front().quantity;
-            queue.pop();
+        std::deque<Order> deque = orders;
+        while (!deque.empty()) {
+            askVolume += deque.front().quantity;
+            deque.pop_front();
         }
     }
     return {bidVolume, askVolume};

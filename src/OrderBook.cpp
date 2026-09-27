@@ -52,6 +52,7 @@ void OrderBook::addOrder(Order order) {
                 }
             }
         }
+
         else if (order.side == Side::SELL) {
             if (!bid.empty() && bid.begin()->first >= price_) {
                 match.MatchOrder(order, bid, ask);
@@ -68,6 +69,7 @@ void OrderBook::addOrder(Order order) {
             }
         }
     }
+    
     else if (order.type == OrderType::MARKET) {
         if (order.side == Side::BUY) {
             match.MatchOrder(order, ask, bid);
@@ -82,8 +84,11 @@ void OrderBook::addOrder(Order order) {
 Order& OrderBook::returnOrderBasedOnId(long ids) {
 
     for (auto& pair : bid) {
+
         std::deque<Order>& hold = pair.second;
+
         auto iter = hold.begin();
+
         while (iter != hold.end()) {
             Order& item = *iter;
             long check = item.id;
@@ -95,8 +100,11 @@ Order& OrderBook::returnOrderBasedOnId(long ids) {
     }
 
     for (auto& pair : ask) {
+
         std::deque<Order>& hold = pair.second;
+
         auto iter = hold.begin();
+
         while (iter != hold.end()) {
             Order& item = *iter;
             long check = item.id;
@@ -113,12 +121,14 @@ Order& OrderBook::returnOrderBasedOnId(long ids) {
 
 template <typename MapType>
 void OrderBook::remove(MapType& type,double price,long ids) {
+
     std::deque<Order> removed;
+
     while (!type[price].empty()) {
         if (type[price].front().id != ids) {
             removed.push_back(type[price].front());
         }
-        type[price].pop();
+        type[price].pop_front();
     }
     type[price] = removed;
 }
@@ -128,6 +138,7 @@ void OrderBook::cancelOrder(long ids) {
 
     Order cancel_order = returnOrderBasedOnId(ids);
     Side side = cancel_order.side;
+
     if (side == Side::BUY) {
         remove(bid, cancel_order.price, ids);
     }
@@ -137,6 +148,7 @@ void OrderBook::cancelOrder(long ids) {
 }
 
 void OrderBook::editOrder(long ids, double newPrice, int newQuant){
+
     Order ord = returnOrderBasedOnId(ids);
     Order newOrder = Order(ids,OrderType::LIMIT,ord.side,newPrice,newQuant);
     cancelOrder(ids);
